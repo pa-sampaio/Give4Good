@@ -4,74 +4,68 @@ import io.quarkus.mongodb.panache.PanacheMongoRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
-/**
- * Repository for managing Announcement entities.
- */
 @ApplicationScoped
 public class AnnouncementRepository implements PanacheMongoRepository<Announcement> {
 
-    /**
-     * Finds an announcement by its MongoDB ObjectId.
-     *
-     * @param id The ObjectId of the announcement.
-     * @return The Announcement if found, null otherwise.
-     */
     public Announcement findAnnouncementById(ObjectId id) {
         return find("_id", id).firstResult();
     }
 
-    /**
-     * Finds all announcements created by a specific donor.
-     */
     public List<Announcement> findByDonorId(String donorId) {
         return list("userDonorId", donorId);
     }
 
-    /**
-     * Finds all announcements claimed by a specific donee.
-     */
     public List<Announcement> findByDoneeId(String doneeId) {
         return list("userDoneeId", doneeId);
     }
 
-    /**
-     * Finds all announcements with a specific donor and donee.
-     */
     public List<Announcement> findByDonorAndDoneeId(String donorId, String doneeId) {
         return list("userDonorId = ?1 and userDoneeId = ?2", donorId, doneeId);
     }
 
-    /**
-     * Returns all announcements that have not been claimed yet.
-     */
     public List<Announcement> findByClaimedFalse() {
         return list("claimed", false);
     }
 
-    /**
-     * Finds unclaimed announcements not created by a given donor.
-     */
     public List<Announcement> findUnclaimedNotOwnedByDonor(String donorId) {
         return list("userDonorId != ?1 and userDoneeId is null", donorId);
     }
 
-    /**
-     * Finds all announcements not created by the given donor.
-     */
     public List<Announcement> findNotOwnedByDonor(String donorId) {
         return list("userDonorId != ?1", donorId);
     }
 
     /**
-     * Removes the claim (donee) from an announcement.
-     *
-     * @param id The string ID of the announcement.
-     * @return A Response indicating success or error.
+     * Pesquisa por anúncios não reclamados e não criados pelo donorId,
+     * filtrando por nome ou descrição do produto (case-insensitive).
+     * Usa os campos corretos: product.name e product.description
      */
+    public List<Announcement> findUnclaimedNotOwnedByDonorWithSearch(String donorId, String search) {
+        if (search == null || search.isBlank()) {
+            return findUnclaimedNotOwnedByDonor(donorId);
+        }
+        // Regex: encontra o termo em qualquer lugar, case-insensitive
+        Pattern regex = Pattern.compile(".*" + Pattern.quote(search.trim()) + ".*", Pattern.CASE_INSENSITIVE);
+
+        List<Document> orConditions = new ArrayList<>();
+        orConditions.add(new Document("product.name", regex));
+        orConditions.add(new Document("product.description", regex));
+
+        Document query = new Document();
+        query.append("userDonorId", new Document("$ne", donorId));
+        query.append("userDoneeId", null);
+        query.append("$or", orConditions);
+
+        return list(query);
+    }
+
     @Transactional
     public Response undoClaim(String id) {
         Announcement announcement = findAnnouncementById(new ObjectId(id));
@@ -84,7 +78,7 @@ public class AnnouncementRepository implements PanacheMongoRepository<Announceme
                     .build();
         }
 
-        announcement.setUserDoneeId(null); // change is persisted automatically due to @Transactional
+        announcement.setUserDoneeId(null);
         return Response.noContent().build();
     }
 }

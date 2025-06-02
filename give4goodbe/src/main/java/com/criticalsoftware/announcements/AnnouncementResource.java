@@ -250,9 +250,11 @@ public class AnnouncementResource {
 
     @GET
     @Path("/unclaimed/not-owned-by/{donorId:" + ID_REGEX + "}")
-    public Response getUnclaimedAnnouncementsNotOwnedBy(@PathParam("donorId") String donorId) {
+    public Response getUnclaimedAnnouncementsNotOwnedBy(
+            @PathParam("donorId") String donorId,
+            @QueryParam("search") String search) {
         try {
-            return Response.ok(announcementService.getUnclaimedAnnouncementsNotOwnedByDonor(donorId)).build();
+            return Response.ok(announcementService.getUnclaimedAnnouncementsNotOwnedByDonorWithSearch(donorId, search)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(REQUEST_ERROR + e.getMessage()).build();
         }

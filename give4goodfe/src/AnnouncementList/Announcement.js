@@ -7,9 +7,17 @@ function Announcements() {
   const [announcements, setAnnouncements] = useState([]);
   const [error, setError] = useState(null);
   const [fetched, setFetched] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [search, setSearch] = useState('');
+  const [searchValue, setSearchValue] = useState('');
   const announcementsPerPage = 9;
 
-  const URL = `http://localhost:8080/announcements/unclaimed/not-owned-by/${sessionStorage.getItem("userId")}`;
+  // Monta a URL incluindo search se necessário
+  const userId = sessionStorage.getItem("userId");
+  const baseURL = `http://localhost:8080/announcements/unclaimed/not-owned-by/${userId}`;
+  const URL = searchValue
+    ? `${baseURL}?search=${encodeURIComponent(searchValue)}`
+    : baseURL;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,21 +25,22 @@ function Announcements() {
         const response = await fetch(URL);
         const data = await response.json();
         setAnnouncements(data);
-        setFetched(true); // Update the state to indicate that announcements have been fetched
+        setFetched(true);
       } catch (error) {
         setError(error.message);
       }
     };
-    
     fetchData();
-  }, [URL]); // Add URL as a dependency to useEffect
+  }, [URL]);
 
-  const handleNext = () => {
-    setCurrentPage((prevPage) => prevPage + 1);
-  };
+  const handleNext = () => setCurrentPage((prevPage) => prevPage + 1);
+  const handlePrev = () => setCurrentPage((prevPage) => prevPage - 1);
 
-  const handlePrev = () => {
-    setCurrentPage((prevPage) => prevPage - 1);
+  // Pesquisa ao pressionar Enter ou clicar na lupa
+  const handleSearch = (e) => {
+    e.preventDefault();
+    setSearchValue(search);
+    setCurrentPage(1);
   };
 
   const indexOfLastAnnouncement = currentPage * announcementsPerPage;
@@ -43,6 +52,35 @@ function Announcements() {
 
   return (
     <div>
+      <div className="search-container">
+        {!showSearch ? (
+          <button
+            className="search-icon-button"
+            onClick={() => setShowSearch(true)}
+            aria-label="Mostrar pesquisa"
+          >
+            🔍
+          </button>
+        ) : (
+          <form className="search-bar-revealed" onSubmit={handleSearch}>
+            <input
+              type="text"
+              placeholder="Pesquisar anúncios..."
+              className="search-input"
+              autoFocus
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <button
+              className="search-icon-button"
+              aria-label="Pesquisar"
+              type="submit"
+            >
+              🔍
+            </button>
+          </form>
+        )}
+      </div>
       <div className="announcements">
         {currentAnnouncements.map((announcement) => (
           <AnnouncementCard key={announcement.id} announcement={announcement} />
