@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import '../Edit/CreateAd.css';
 
 const CreateAd = () => {
-  const { register, handleSubmit, formState: { errors }, setValue } = useForm();
+  const { register, handleSubmit, formState: { errors }, setValue, reset } = useForm();
   const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
@@ -37,8 +37,14 @@ const CreateAd = () => {
   };
 
   const onSubmit = async (formData) => {
+    // O backend espera os campos:
+    // productName, productDescription, productPhotoUrl, productCategory, userDonorId
+    // Enviamos assim e o backend monta o objeto Product corretamente
     const data = {
-      ...formData,
+      productName: formData.productName,
+      productDescription: formData.productDescription,
+      productPhotoUrl: imageUrl,
+      productCategory: formData.productCategory,
       userDonorId: sessionStorage.getItem('userId')
     };
 
@@ -52,11 +58,14 @@ const CreateAd = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Something went wrong while creating the ad');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Something went wrong while creating the ad');
       }
 
       toast.success('Ad created successfully!');
-      navigate('/');
+      reset();
+      setImageUrl('');
+      setTimeout(() => navigate('/'), 1500);
     } catch (error) {
       toast.error(error.message);
     }
@@ -65,7 +74,6 @@ const CreateAd = () => {
   const showErrors = () => {
     if (errors.productName) toast.error(errors.productName.message);
     if (errors.productDescription) toast.error(errors.productDescription.message);
-    if (errors.userDonorId) toast.error(errors.userDonorId.message);
     if (errors.productCategory) toast.error(errors.productCategory.message);
     if (errors.productPhotoUrl) toast.error(errors.productPhotoUrl.message);
   };
@@ -135,7 +143,7 @@ const CreateAd = () => {
           </div>
 
           <div className="create-button-container">
-            <button className="create-button" type="submit">Create</button>
+            <button className="create-button" type="submit" disabled={uploading}>Create</button>
           </div>
         </form>
       </div>
