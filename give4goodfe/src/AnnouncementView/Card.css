@@ -1,0 +1,114 @@
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.card {
+  display: grid;
+  place-items: center;
+  background-color: white;
+  max-width: 90%;
+  max-height: 80%;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 50px 20px rgba(0, 0, 0, 0.2);
+  padding: 50px 70px 40px;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  box-sizing: border-box;
+}
+.card-navigation-Buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 8%;
+}
+.backArrow {
+  align-items: start;
+  display: flex;
+  align-items: center;
+  color: #7E7E7E;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 20px;
+}
+.card-content {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+.card-header {
+  align-self: start;
+  align-content: center;
+}
+.left-arrow-details {
+  align-items: start;
+  display: flex;
+  align-items: center;
+  color: #7e7e7e;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 20px;
+}
+.card-image {
+  width: 250px;
+  height: 200px;
+  max-width: 250px;
+  max-height: 200px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.card-image img {
+  width: 100%;
+  border-radius: 40px;
+}
+.carousel-indicators {
+  position: absolute;
+  bottom: 10px;
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  width: 100%;
+}
+.left-arrow-details :hover {
+  color: #686868;
+}
+.card-text {
+  width: 100%;
+  margin-left: 50px;
+  margin-right: 20px;
+}
+.card-text h1 {
+  font-size: 30px;
+}
+.card-text h2 {
+  font-size: 22px;
+}
+.card-text p {
+  font-size: 18px;
+}
+.text-container {
+  width: 100%;
+}
+.card-title {
+  font-size: 24px;
+  color: #C01722;
+}
+.card-category {
+  font-size: 18px;
+  color: #CB5C63;
+}
+.card-description {
+  font-size: 16px;
+  color: #555;
+  line-height: 2;
+}
+.confirm-button {
+  background-color: #C01722 !important; /* Change to your desired color */
+  color: white !important; /* Change text color if needed */
+}
