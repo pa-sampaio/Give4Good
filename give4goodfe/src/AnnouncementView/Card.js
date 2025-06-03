@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import CustomButton from "./ButtonClaim";
 import BackButton from "./ButtonBack";
 import Swal from "sweetalert2";
-import { useNavigate, useParams } from "react-router-dom"; // Import useParams
+import { useNavigate, useParams } from "react-router-dom"; 
 import "./Card.css";
 
 function Card({ onClose }) {
-  const { id } = useParams(); // Pega o ID do anúncio a partir da URL
+  const { id } = useParams(); 
   const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
   const [announcementDetailsName, setAnnouncementName] = useState(null);
@@ -14,7 +14,14 @@ function Card({ onClose }) {
   const [announcementDetailsDescription, setAnnouncementDescription] = useState(null);
   const [announcementDetailsImage, setAnnouncementDetailsImage] = useState(null);
   const [error, setError] = useState(null);
-  const userDoneeId = sessionStorage.getItem("userId"); // Pega o ID do usuário da sessionStorage
+  const userDoneeId = sessionStorage.getItem("userId");
+
+  // Comments states
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const handleClaim = async (event) => {
     event.preventDefault();
@@ -35,7 +42,7 @@ function Card({ onClose }) {
       }
       Swal.fire({
         title: "Success!",
-        text: "This product has been claimed with success!",
+        text: "This product has been claimed successfully!",
         icon: "success",
         confirmButtonText: "OK",
         customClass: {
@@ -82,7 +89,7 @@ function Card({ onClose }) {
         setError(error.message);
         Swal.fire({
           title: "Error!",
-          text: "There was a problem while fetching the announcement details.",
+          text: "There was a problem fetching the announcement details.",
           icon: "error",
           confirmButtonText: "OK",
           customClass: {
@@ -96,6 +103,59 @@ function Card({ onClose }) {
 
     fetchAnnouncementDetails();
   }, [id]);
+
+  // Fetch comments only when showComments is true
+  useEffect(() => {
+    if (!showComments) return;
+    const fetchComments = async () => {
+      setLoadingComments(true);
+      try {
+        const response = await fetch(`http://localhost:8080/announcements/${id}/comments`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch comments");
+        }
+        const data = await response.json();
+        setComments(data);
+      } catch (err) {
+        setComments([]);
+      }
+      setLoadingComments(false);
+    };
+
+    fetchComments();
+  }, [id, showComments]);
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const response = await fetch(`http://localhost:8080/announcements/${id}/comments`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: userDoneeId,
+          content: newComment,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to submit comment");
+      }
+      const comment = await response.json();
+      setComments((prev) => [...prev, comment]);
+      setNewComment("");
+    } catch (err) {
+      Swal.fire({
+        title: "Error!",
+        text: "Failed to submit your comment.",
+        icon: "error",
+        confirmButtonText: "OK",
+      });
+    }
+    setSubmittingComment(false);
+  };
 
   return (
     <div className="card-container">
@@ -130,6 +190,50 @@ function Card({ onClose }) {
             <CustomButton handleExploreClick={handleClaim} />
           </div>
         </div>
+        {/* Toggle Comments Button */}
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <button
+            className="toggle-comments-btn"
+            onClick={() => setShowComments((show) => !show)}
+          >
+            {showComments ? "Hide Comments" : "View Comments"}
+          </button>
+        </div>
+        {/* Comments Section at the bottom, only if showComments */}
+        {showComments && (
+          <div className="card-comments-section">
+            <h3>Comments</h3>
+            {loadingComments ? (
+              <p>Loading comments...</p>
+            ) : (
+              <ul className="card-comments-list">
+                {comments.length === 0 && <li>No comments yet.</li>}
+                {comments.map((comment, idx) => (
+                  <li key={comment.id || idx} className="card-comment-item">
+                    <strong>{comment.username || "User"}:</strong> {comment.content}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <form className="card-comment-form" onSubmit={handleCommentSubmit}>
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write a comment..."
+                rows={2}
+                className="card-comment-textarea"
+                disabled={submittingComment}
+              />
+              <button
+                type="submit"
+                className="card-comment-submit"
+                disabled={!newComment.trim() || submittingComment}
+              >
+                {submittingComment ? "Sending..." : "Comment"}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
     </div>
   );

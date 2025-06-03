@@ -162,7 +162,43 @@ const EditButton = styled(motion.button)`
   }
 `;
 
-const AnnouncementCard = ({ id, title, category, imageUrl }) => {
+const CommentsSection = styled.div`
+  width: 100%;
+  background: #f3f3f3;
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 18px;
+  max-height: 220px;
+  min-height: 80px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+`;
+
+const CommentsTitle = styled.h4`
+  margin: 0 0 10px 0;
+  color: #C01722;
+`;
+
+const CommentsList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  max-height: 100px;
+`;
+
+const CommentItem = styled.li`
+  margin-bottom: 6px;
+  font-size: 0.97rem;
+  color: #444;
+  background: #fff;
+  border-radius: 4px;
+  padding: 4px 8px;
+`;
+
+const AnnouncementCard = ({ id, title, category, imageUrl, comments }) => {
   const navigate = useNavigate(); // Hook para navegação
 
   const handleEditClick = () => {
@@ -201,12 +237,25 @@ const AnnouncementCard = ({ id, title, category, imageUrl }) => {
       >
         Edit
       </EditButton>
+      {/* Comments Section */}
+      <CommentsSection>
+        <CommentsTitle>Comments</CommentsTitle>
+        <CommentsList>
+          {(comments || []).length === 0 && <CommentItem>No comments yet.</CommentItem>}
+          {(comments || []).map((comment, idx) => (
+            <CommentItem key={comment.id || idx}>
+              <strong>{comment.username || "User"}:</strong> {comment.content}
+            </CommentItem>
+          ))}
+        </CommentsList>
+      </CommentsSection>
     </Card>
   );
 };
 
 const MyAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [comments, setComments] = useState({}); // {announcementId: [comments]}
   const navigate = useNavigate(); // Hook para navegação
 
   useEffect(() => {
@@ -215,6 +264,24 @@ const MyAnnouncements = () => {
         const response = await fetch(`http://localhost:8080/announcements/donor/${sessionStorage.getItem('userId')}`);
         const data = await response.json();
         setAnnouncements(data);
+
+        // Fetch comments for each announcement in parallel
+        const commentsObj = {};
+        await Promise.all(
+          data.map(async (announcement) => {
+            try {
+              const resCom = await fetch(`http://localhost:8080/announcements/${announcement.id}/comments`);
+              if (resCom.ok) {
+                commentsObj[announcement.id] = await resCom.json();
+              } else {
+                commentsObj[announcement.id] = [];
+              }
+            } catch {
+              commentsObj[announcement.id] = [];
+            }
+          })
+        );
+        setComments(commentsObj);
       } catch (error) {
         console.error('Error fetching announcements:', error);
       }
@@ -270,6 +337,7 @@ const MyAnnouncements = () => {
                 title={announcement.product.name} 
                 category={announcement.product.category} 
                 imageUrl={announcement.product.photoUrl} // Use the photo URL from the API
+                comments={comments[announcement.id] || []}
               />
             </motion.div>
           ))}

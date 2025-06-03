@@ -10,7 +10,6 @@ import jakarta.ws.rs.core.*;
 import org.bson.types.ObjectId;
 import org.jboss.resteasy.annotations.providers.multipart.MultipartForm;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,6 +31,9 @@ public class AnnouncementResource {
 
     @Inject
     UserRepository userRepository;
+
+    @Inject
+    CommentRepository commentRepository;
 
     private boolean isInvalidId(String id) {
         return !id.matches(ID_REGEX);
@@ -95,7 +97,7 @@ public class AnnouncementResource {
             if (!java.nio.file.Files.exists(uploadFolder))
                 java.nio.file.Files.createDirectories(uploadFolder);
 
-            // Obtém extensão do arquivo
+            // Get file extension
             String extension = ".jpg";
             if (form.fileName != null && form.fileName.contains(".")) {
                 extension = form.fileName.substring(form.fileName.lastIndexOf('.'));
@@ -105,7 +107,7 @@ public class AnnouncementResource {
 
             java.nio.file.Files.write(filePath, form.image);
 
-            // Gera URL (ajuste conforme necessário)
+            // Generate URL (adjust as needed)
             String serverUrl = uriInfo.getBaseUri().toString().replaceAll("/$", "");
             String url = serverUrl + "/uploads/" + newFileName;
 
@@ -268,5 +270,52 @@ public class AnnouncementResource {
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(REQUEST_ERROR + e.getMessage()).build();
         }
+    }
+
+    // ==== COMMENTS ENDPOINTS ====
+
+    // List comments for an announcement
+    @GET
+    @Path("/{id:" + ID_REGEX + "}/comments")
+    public Response getComments(@PathParam("id") String id) {
+        List<Comment> comments = commentRepository.findByAnnouncementId(id);
+        comments.sort(Comparator.comparing(Comment::getCreatedAt));
+        return Response.ok(comments).build();
+    }
+
+    // Add a comment to an announcement$
+    @POST
+    @Path("/{id:" + ID_REGEX + "}/comments")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response addComment(@PathParam("id") String id, CommentRequest request) {
+        Announcement announcement = announcementRepository.findAnnouncementById(new ObjectId(id));
+        if (announcement == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity("Announcement not found.").build();
+        }
+        if (request.getContent() == null || request.getContent().isBlank() ||
+                request.getUserId() == null || request.getUserId().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity("Both userId and content are required.").build();
+        }
+
+        String username = "User";
+        User user = null;
+        try {
+            user = userRepository.findById(new ObjectId(request.getUserId()));
+        } catch (Exception ignored) {}
+        if (user != null && user.getName() != null) {
+            username = user.getName();
+        }
+
+        Comment comment = new Comment(
+                id,
+                request.getUserId(),
+                username,
+                request.getContent(),
+                java.time.LocalDateTime.now()
+        );
+        commentRepository.persist(comment);
+        return Response.status(Response.Status.CREATED).entity(comment).build();
     }
 }
