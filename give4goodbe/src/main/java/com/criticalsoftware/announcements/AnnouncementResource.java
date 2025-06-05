@@ -224,6 +224,24 @@ public class AnnouncementResource {
         public String userId; // userId do claim vencedor
     }
 
+    @PUT
+    @Path("/{id:" + ID_REGEX + "}/status")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateStatus(@PathParam("id") String id, Map<String, String> body) {
+        String status = body.get("status");
+        if (status == null || (!status.equals("available") && !status.equals("sent") && !status.equals("unavailable"))) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid status.").build();
+        }
+        Announcement announcement = announcementRepository.findAnnouncementById(new ObjectId(id));
+        if (announcement == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Announcement not found.").build();
+        }
+        announcement.setStatus(status);
+        announcementRepository.persistOrUpdate(announcement);
+        return Response.ok(announcementService.mapToResponse(announcement)).build();
+    }
+
     // Permite ao donor escolher quem recebe o produto
     @PUT
     @Path("/{id:" + ID_REGEX + "}/select-claim")

@@ -18,10 +18,11 @@ public class Announcement extends PanacheMongoEntity {
 
     private Product product;
     private LocalDateTime date;
-        private String userDonorId;
-        private String userDoneeId;
-
+    private String userDonorId;
+    private String userDoneeId;
     private List<ClaimRequest> claimRequests = new ArrayList<>();
+
+    private String status = "available";
 
     public Announcement(Product product, String userDonorId) {
         this.product = product;
@@ -29,5 +30,6 @@ public class Announcement extends PanacheMongoEntity {
         this.userDonorId = userDonorId;
         this.userDoneeId = null;
         this.claimRequests = new ArrayList<>();
+        this.status ="available";
     }
 }

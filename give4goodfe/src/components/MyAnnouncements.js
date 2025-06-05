@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import '../css/MyAnnouncements.css';
 
+// Animation keyframes
 const gradientAnimation = keyframes`
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -16,6 +17,13 @@ const floatAnimation = keyframes`
   100% { transform: translateY(0px); }
 `;
 
+const pulseAnimation = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+`;
+
+// Styled components
 const PageContainer = styled(motion.div)`
   max-width: 1200px;
   margin: 0 auto;
@@ -82,12 +90,6 @@ const NewAnnouncementCard = styled(Card)`
   }
 `;
 
-const pulseAnimation = keyframes`
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-`;
-
 const PlusIcon = styled(motion.div)`
   font-size: 4rem;
   color: #c51d23;
@@ -127,6 +129,7 @@ const EditButton = styled(motion.button)`
   transition: background-color 0.3s ease;
   position: relative;
   overflow: hidden;
+  margin-top: 5px;
 
   &::after {
     content: '';
@@ -215,14 +218,73 @@ const CommentItem = styled.li`
   padding: 4px 8px;
 `;
 
-const AnnouncementCard = ({ id, title, category, imageUrl, comments, hasClaims }) => {
+// Status badge and selector
+const getStatusColor = (status) => {
+  if (status === "available") return "#4caf50";      // green
+  if (status === "sent") return "#ffb300";           // yellow
+  if (status === "unavailable") return "#c51d23";    // red
+  return "#bbb";
+};
+
+const StatusBadge = ({ status }) => (
+  <span
+    style={{
+      display: "inline-block",
+      padding: "4px 14px",
+      borderRadius: "25px",
+      background: getStatusColor(status),
+      color: "#fff",
+      fontWeight: "bold",
+      fontSize: "0.97rem",
+      marginBottom: 8,
+      marginTop: 4,
+      marginRight: 8
+    }}
+  >
+    {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Available"}
+  </span>
+);
+
+const StatusSelector = ({ id, currentStatus, onStatusChange }) => {
+  const [status, setStatus] = useState(currentStatus);
+
+  const handleChange = async (e) => {
+    const newStatus = e.target.value;
+    setStatus(newStatus);
+    await fetch(`http://localhost:8080/announcements/${id}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+    });
+    onStatusChange && onStatusChange(newStatus);
+  };
+
+  return (
+    <select value={status} onChange={handleChange} style={{marginLeft: 0, borderRadius: 6, padding: "3px 10px"}}>
+      <option value="available">Available</option>
+      <option value="sent">Sent</option>
+      <option value="unavailable">Unavailable</option>
+    </select>
+  );
+};
+
+// Card with status badge and selector
+const AnnouncementCard = ({
+  id,
+  title,
+  category,
+  imageUrl,
+  comments,
+  hasClaims,
+  status: initialStatus = "available"
+}) => {
   const navigate = useNavigate();
+  const [status, setStatus] = useState(initialStatus);
 
   const handleEditClick = () => {
     navigate(`/edit-announcement/${id}`);
   };
 
-  // Donor can manage claims if there are claim requests
   const handleManageClaims = () => {
     navigate(`/announcementDetails/${id}/claim-requests`);
   };
@@ -252,6 +314,13 @@ const AnnouncementCard = ({ id, title, category, imageUrl, comments, hasClaims }
       >
         {category}
       </CardCategory>
+
+      {/* Status badge and selector */}
+      <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+        <StatusBadge status={status} />
+        <StatusSelector id={id} currentStatus={status} onStatusChange={setStatus} />
+      </div>
+
       <EditButton
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
@@ -259,7 +328,6 @@ const AnnouncementCard = ({ id, title, category, imageUrl, comments, hasClaims }
       >
         Edit
       </EditButton>
-      {/* Button for donor to manage claims */}
       {hasClaims && (
         <ClaimButton
           whileHover={{ scale: 1.1 }}
@@ -269,7 +337,6 @@ const AnnouncementCard = ({ id, title, category, imageUrl, comments, hasClaims }
           Manage Claims
         </ClaimButton>
       )}
-      {/* Comments Section */}
       <CommentsSection>
         <CommentsTitle>Comments</CommentsTitle>
         <CommentsList>
@@ -384,6 +451,7 @@ const MyAnnouncements = () => {
                 imageUrl={announcement.product.photoUrl}
                 comments={comments[announcement.id] || []}
                 hasClaims={!!(claims[announcement.id] && claims[announcement.id].length > 0)}
+                status={announcement.status}
               />
             </motion.div>
           ))}

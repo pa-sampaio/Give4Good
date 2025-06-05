@@ -2,6 +2,33 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AnnouncementCard.css';
 
+// Função para cor do status
+const getStatusColor = (status) => {
+  if (status === "available") return "#4caf50";      // green
+  if (status === "sent") return "#ffb300";           // yellow
+  if (status === "unavailable") return "#c51d23";    // red
+  return "#bbb";
+};
+
+// Badge visual para o status
+const StatusBadge = ({ status }) => (
+  <span
+    style={{
+      display: "inline-block",
+      padding: "4px 14px",
+      borderRadius: "25px",
+      background: getStatusColor(status),
+      color: "#fff",
+      fontWeight: "bold",
+      fontSize: "0.97rem",
+      marginBottom: 8,
+      marginTop: 4
+    }}
+  >
+    {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Available"}
+  </span>
+);
+
 function AnnouncementCard({ announcement }) {
   const navigate = useNavigate();
   const [donorName, setDonorName] = useState("Unknown");
@@ -49,6 +76,9 @@ function AnnouncementCard({ announcement }) {
 
       <h2 className="announcement-title">{product.name || "No title available"}</h2>
       <p className="announcement-category">{product.category || "No category specified"}</p>
+
+      {/* Mostra status para todos */}
+      <StatusBadge status={announcement.status} />
 
       <p className="announcement-author">
         <strong>By:</strong> {donorName}

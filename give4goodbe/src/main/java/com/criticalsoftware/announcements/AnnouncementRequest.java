@@ -19,6 +19,8 @@ public class AnnouncementRequest {
     @NotBlank
     private String productCategory;
 
+    private String status;
+
     // getters e setters
 
     public String getUserDonorId() {
@@ -60,4 +62,6 @@ public class AnnouncementRequest {
     public void setProductCategory(String productCategory) {
         this.productCategory = productCategory;
     }
+
+    public void setStatus(String status) { this.status = status; } public String getStatus() { return status; }
 }
