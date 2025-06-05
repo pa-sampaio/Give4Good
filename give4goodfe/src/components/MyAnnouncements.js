@@ -165,20 +165,22 @@ const EditButton = styled(motion.button)`
   }
 `;
 
-const ClaimButton = styled(motion.button)`
-  background-color: #009688;
+const ManageClaimsButton = styled(motion.button)`
+  background-color: #c51d23;
   color: white;
   border: none;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1.7rem;
   border-radius: 25px;
   cursor: pointer;
   font-weight: bold;
   margin-left: 0.5rem;
   margin-top: 0.5rem;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(192, 23, 34, 0.07);
 
   &:hover {
-    background-color: #00695c;
+    background-color: #a5171d;
+    box-shadow: 0 4px 16px rgba(192, 23, 34, 0.18);
   }
 `;
 
@@ -218,7 +220,7 @@ const CommentItem = styled.li`
   padding: 4px 8px;
 `;
 
-// Status badge and selector
+const statusOrder = ["available", "sent", "unavailable"];
 const getStatusColor = (status) => {
   if (status === "available") return "#4caf50";      // green
   if (status === "sent") return "#ffb300";           // yellow
@@ -226,7 +228,7 @@ const getStatusColor = (status) => {
   return "#bbb";
 };
 
-const StatusBadge = ({ status }) => (
+const StatusBadge = ({ status, onClick, clickable }) => (
   <span
     style={{
       display: "inline-block",
@@ -238,37 +240,20 @@ const StatusBadge = ({ status }) => (
       fontSize: "0.97rem",
       marginBottom: 8,
       marginTop: 4,
-      marginRight: 8
+      marginRight: 8,
+      cursor: clickable ? 'pointer' : 'default',
+      userSelect: 'none',
+      border: clickable ? '2px solid #bdbdbd' : 'none',
+      boxShadow: clickable ? '0 0 4px rgba(0,0,0,0.08)' : 'none',
+      transition: 'background 0.2s'
     }}
+    onClick={clickable ? onClick : undefined}
+    title={clickable ? "Click to change status" : ""}
   >
     {status ? status.charAt(0).toUpperCase() + status.slice(1) : "Available"}
   </span>
 );
 
-const StatusSelector = ({ id, currentStatus, onStatusChange }) => {
-  const [status, setStatus] = useState(currentStatus);
-
-  const handleChange = async (e) => {
-    const newStatus = e.target.value;
-    setStatus(newStatus);
-    await fetch(`http://localhost:8080/announcements/${id}/status`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus })
-    });
-    onStatusChange && onStatusChange(newStatus);
-  };
-
-  return (
-    <select value={status} onChange={handleChange} style={{marginLeft: 0, borderRadius: 6, padding: "3px 10px"}}>
-      <option value="available">Available</option>
-      <option value="sent">Sent</option>
-      <option value="unavailable">Unavailable</option>
-    </select>
-  );
-};
-
-// Card with status badge and selector
 const AnnouncementCard = ({
   id,
   title,
@@ -281,12 +266,28 @@ const AnnouncementCard = ({
   const navigate = useNavigate();
   const [status, setStatus] = useState(initialStatus);
 
+  // Detect if this is your own announcement (show status as clickable)
+  // You can adjust this logic if you want to allow only the donor to change status
+  const isOwner = true; // Change logic if needed
+
   const handleEditClick = () => {
     navigate(`/edit-announcement/${id}`);
   };
 
   const handleManageClaims = () => {
     navigate(`/announcementDetails/${id}/claim-requests`);
+  };
+
+  // handle status badge click
+  const handleStatusBadgeClick = async () => {
+    const currentIdx = statusOrder.indexOf(status);
+    const nextStatus = statusOrder[(currentIdx + 1) % statusOrder.length];
+    setStatus(nextStatus);
+    await fetch(`http://localhost:8080/announcements/${id}/status`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: nextStatus })
+    });
   };
 
   return (
@@ -315,10 +316,9 @@ const AnnouncementCard = ({
         {category}
       </CardCategory>
 
-      {/* Status badge and selector */}
+      {/* Status badge (clickable for donor/owner) */}
       <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-        <StatusBadge status={status} />
-        <StatusSelector id={id} currentStatus={status} onStatusChange={setStatus} />
+        <StatusBadge status={status} onClick={isOwner ? handleStatusBadgeClick : undefined} clickable={isOwner} />
       </div>
 
       <EditButton
@@ -329,13 +329,13 @@ const AnnouncementCard = ({
         Edit
       </EditButton>
       {hasClaims && (
-        <ClaimButton
+        <ManageClaimsButton
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleManageClaims}
         >
           Manage Claims
-        </ClaimButton>
+        </ManageClaimsButton>
       )}
       <CommentsSection>
         <CommentsTitle>Comments</CommentsTitle>
