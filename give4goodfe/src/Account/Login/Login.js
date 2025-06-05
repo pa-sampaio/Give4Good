@@ -62,6 +62,7 @@ function Login() {
       sessionStorage.setItem("userEmail", user.contact.email);
       sessionStorage.setItem("userName", user.name);
       sessionStorage.setItem("userId", user.id);
+      sessionStorage.setItem("userRole", user.role); // <-- ADICIONADO
 
       Swal.fire({
         title: "Logged in successfully!",

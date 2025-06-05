@@ -17,4 +17,5 @@ public class UserResponse {
     private String name;
     private LocalDate dateBirth;
     private Contact contact;
+    private String role;
 }

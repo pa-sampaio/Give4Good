@@ -38,7 +38,8 @@ public class UserResource {
                     userRequest.getDateBirth(),
                     userRequest.getContact(),
                     userRequest.getPassword(),
-                    verificationCode
+                    verificationCode,
+                    userRequest.getRole() // <-- ADICIONADO
             );
 
             repository.persist(user);
@@ -84,7 +85,8 @@ public class UserResource {
                     user.id,
                     user.getName(),
                     user.getDateBirth(),
-                    user.getContact()
+                    user.getContact(),
+                    user.getRole()
             );
 
             return Response.ok(userResponse).build();
@@ -127,7 +129,7 @@ public class UserResource {
         if (user == null) {
             return Response.status(Status.NOT_FOUND).entity(USER_NOT_FOUND).build();
         }
-        UserResponse userResponse = new UserResponse(user.id, user.getName(), user.getDateBirth(), user.getContact());
+        UserResponse userResponse = new UserResponse(user.id, user.getName(), user.getDateBirth(), user.getContact(), user.getRole()); // <-- ADICIONADO
         return Response.ok(userResponse).build();
     }
 
@@ -143,7 +145,7 @@ public class UserResource {
             return Response.status(Status.NOT_FOUND).entity(USER_NOT_FOUND).build();
         }
 
-        UserResponse userResponse = new UserResponse(user.id, user.getName(), user.getDateBirth(), user.getContact());
+        UserResponse userResponse = new UserResponse(user.id, user.getName(), user.getDateBirth(), user.getContact(), user.getRole()); // <-- ADICIONADO
         return Response.ok(userResponse).build();
     }
 
@@ -152,12 +154,11 @@ public class UserResource {
         List<User> users = repository.listAll();
         List<UserResponse> userResponses = new ArrayList<>();
         for (User user : users) {
-            userResponses.add(new UserResponse(user.id, user.getName(), user.getDateBirth(), user.getContact()));
+            userResponses.add(new UserResponse(user.id, user.getName(), user.getDateBirth(), user.getContact(), user.getRole())); // <-- ADICIONADO
         }
         return Response.ok(userResponses).build();
     }
 
-    // ALTERADO: Atualiza também nome e data de nascimento, além de contact
     @PUT
     @Path("/{id}")
     public Response update(@PathParam("id") String id, UserRequest userRequest) {
@@ -167,10 +168,11 @@ public class UserResource {
             if (userFromDb == null) {
                 return Response.status(Status.NOT_FOUND).entity(USER_NOT_FOUND).build();
             }
-            // Atualiza nome, data de nascimento e contacto
+            // Atualiza nome, data de nascimento, contacto e role
             userFromDb.setName(userRequest.getName());
             userFromDb.setDateBirth(userRequest.getDateBirth());
             userFromDb.setContact(userRequest.getContact());
+            userFromDb.setRole(userRequest.getRole()); // <-- ADICIONADO
             repository.update(userFromDb);
             return Response.ok().build();
         } catch (IllegalArgumentException e) {

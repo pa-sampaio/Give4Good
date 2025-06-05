@@ -23,13 +23,15 @@ public class User extends PanacheMongoEntity {
     private String resetCode;
     private String verificationCode;
     private boolean emailConfirmed;
+    private String role;
 
-    public User(String name, LocalDate dateBirth, Contact contact, String password, String verificationCode) {
+    public User(String name, LocalDate dateBirth, Contact contact, String password, String verificationCode, String role) {
         this.name = name;
         this.dateBirth = dateBirth;
         this.contact = contact;
         this.password = password;
         this.verificationCode = verificationCode;
         this.emailConfirmed = false;
+        this.role = role;
     }
 }

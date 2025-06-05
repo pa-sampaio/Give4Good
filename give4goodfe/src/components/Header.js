@@ -46,6 +46,40 @@ const Header = () => {
 
   const isLoggedIn = !!sessionStorage.getItem('userName');
   const userName = sessionStorage.getItem('userName');
+  const userRole = sessionStorage.getItem('userRole');
+  const userId = sessionStorage.getItem('userId');
+
+  // Only show chat menu if donor or donee is logged in
+  const canShowChatMenu =
+    isLoggedIn &&
+    (userRole === 'donor' || userRole === 'donee');
+
+  // Handler para o botão de chat
+  const handleChatClick = async () => {
+    if (userRole === "donee") {
+      // Vai buscar o(s) anúncio(s) onde este user é o donee aceite
+      try {
+        const response = await fetch(`http://localhost:8080/announcements/donee/${userId}`);
+        if (!response.ok) throw new Error("Failed to fetch assigned announcements");
+        const data = await response.json();
+        // Se tiver anúncios aceites, vai para o chat do primeiro (ou podes mostrar escolha)
+        if (data && data.length > 0) {
+          // Preferencialmente, vai para o mais recente:
+          const sorted = data.sort((a, b) => new Date(b.date) - new Date(a.date));
+          const announcementId = sorted[0].id;
+          navigate(`/announcementDetails/${announcementId}/private-chat`);
+        } else {
+          // Não tem anúncio aceite
+          alert("You have not been accepted to any announcement yet.");
+        }
+      } catch (err) {
+        alert("Failed to fetch your accepted announcements.");
+      }
+    } else if (userRole === "donor") {
+      // Para donor, podes mostrar uma página de escolha (ex: /my-announcements)
+      navigate("/my-announcements");
+    }
+  };
 
   return (
     <AppBar position="static" className="styled-app-bar">
@@ -98,6 +132,15 @@ const Header = () => {
               {capitalizeFirstLetter('my announcements')}
             </MenuItem>
           </Menu>
+          {canShowChatMenu && (
+            <Button
+              component={Link}
+              to="/private-chat"
+              className={`header-link ${location.pathname === '/private-chat' ? 'header-link-active' : ''}`}
+            >
+              {capitalizeFirstLetter('chat')}
+            </Button>
+          )}
         </div>
 
         <div>

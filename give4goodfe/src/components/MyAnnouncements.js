@@ -162,6 +162,23 @@ const EditButton = styled(motion.button)`
   }
 `;
 
+const ClaimButton = styled(motion.button)`
+  background-color: #009688;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #00695c;
+  }
+`;
+
 const CommentsSection = styled.div`
   width: 100%;
   background: #f3f3f3;
@@ -198,11 +215,16 @@ const CommentItem = styled.li`
   padding: 4px 8px;
 `;
 
-const AnnouncementCard = ({ id, title, category, imageUrl, comments }) => {
-  const navigate = useNavigate(); // Hook para navegação
+const AnnouncementCard = ({ id, title, category, imageUrl, comments, hasClaims }) => {
+  const navigate = useNavigate();
 
   const handleEditClick = () => {
     navigate(`/edit-announcement/${id}`);
+  };
+
+  // Donor can manage claims if there are claim requests
+  const handleManageClaims = () => {
+    navigate(`/announcementDetails/${id}/claim-requests`);
   };
 
   return (
@@ -210,14 +232,14 @@ const AnnouncementCard = ({ id, title, category, imageUrl, comments }) => {
       whileHover={{ scale: 1.05, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.2)' }}
       transition={{ type: "spring", stiffness: 300 }}
     >
-      <CardImage 
-        src={imageUrl} 
+      <CardImage
+        src={imageUrl}
         alt={title}
         whileHover={{ scale: 1.1 }}
         transition={{ type: "spring", stiffness: 300 }}
       />
       <CardTitle
-        initial={{ opacity: 0, y: 20 }} 
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
@@ -237,6 +259,16 @@ const AnnouncementCard = ({ id, title, category, imageUrl, comments }) => {
       >
         Edit
       </EditButton>
+      {/* Button for donor to manage claims */}
+      {hasClaims && (
+        <ClaimButton
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={handleManageClaims}
+        >
+          Manage Claims
+        </ClaimButton>
+      )}
       {/* Comments Section */}
       <CommentsSection>
         <CommentsTitle>Comments</CommentsTitle>
@@ -256,7 +288,8 @@ const AnnouncementCard = ({ id, title, category, imageUrl, comments }) => {
 const MyAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [comments, setComments] = useState({}); // {announcementId: [comments]}
-  const navigate = useNavigate(); // Hook para navegação
+  const [claims, setClaims] = useState({}); // {announcementId: [claimRequests]}
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -265,8 +298,9 @@ const MyAnnouncements = () => {
         const data = await response.json();
         setAnnouncements(data);
 
-        // Fetch comments for each announcement in parallel
+        // Fetch comments and claims for each announcement in parallel
         const commentsObj = {};
+        const claimsObj = {};
         await Promise.all(
           data.map(async (announcement) => {
             try {
@@ -279,14 +313,25 @@ const MyAnnouncements = () => {
             } catch {
               commentsObj[announcement.id] = [];
             }
+            try {
+              const resClaims = await fetch(`http://localhost:8080/announcements/${announcement.id}/claim-requests`);
+              if (resClaims.ok) {
+                claimsObj[announcement.id] = await resClaims.json();
+              } else {
+                claimsObj[announcement.id] = [];
+              }
+            } catch {
+              claimsObj[announcement.id] = [];
+            }
           })
         );
         setComments(commentsObj);
+        setClaims(claimsObj);
       } catch (error) {
         console.error('Error fetching announcements:', error);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -309,7 +354,7 @@ const MyAnnouncements = () => {
           <NewAnnouncementCard
             whileHover={{ scale: 1.05, boxShadow: '0 15px 30px rgba(0, 0, 0, 0.2)' }}
             transition={{ type: "spring", stiffness: 300 }}
-            onClick={() => navigate('/CreateAd')} // Navega para o formulário CreateAd
+            onClick={() => navigate('/CreateAd')}
           >
             <PlusIcon
               whileHover={{ rotate: 180 }}
@@ -332,12 +377,13 @@ const MyAnnouncements = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1, type: "spring", stiffness: 100 }}
             >
-              <AnnouncementCard 
-                id={announcement.id} // Passe o ID do anúncio
-                title={announcement.product.name} 
-                category={announcement.product.category} 
-                imageUrl={announcement.product.photoUrl} // Use the photo URL from the API
+              <AnnouncementCard
+                id={announcement.id}
+                title={announcement.product.name}
+                category={announcement.product.category}
+                imageUrl={announcement.product.photoUrl}
                 comments={comments[announcement.id] || []}
+                hasClaims={!!(claims[announcement.id] && claims[announcement.id].length > 0)}
               />
             </motion.div>
           ))}

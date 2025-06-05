@@ -17,7 +17,11 @@ import ConfirmEmail from './components/ConfirmEmail.js';
 import ForgotPassword from './components/ForgotPassword.js';
 import VerifyCode from './components/VerifyCode.js';
 import ResetPassword from './components/ResetPassword.js';
-import EditProfile from './components/EditProfile'; // Importa o novo componente
+import EditProfile from './components/EditProfile';
+import ClaimReasonPage from "./AnnouncementView/ClaimReasonPage";
+import ClaimRequestsListPage from './AnnouncementView/ClaimRequestListPage.js';
+import PrivateChat from './AnnouncementView/PrivateChat.js';
+import DoneeChatsPage from './AnnouncementView/DoneeChatsPage.js';
 
 function App() {
   return (
@@ -30,6 +34,7 @@ function App() {
         <Route path="/my-announcements" element={<MyAnnouncements />} />
         <Route path="/announcements" element={<Announcement />} />
         <Route path="/announcementDetails/:id" element={<Card />} />
+        <Route path="/announcementDetails/:id/claim-reason" element={<ClaimReasonPage />} />
         <Route path="/sign-up" element={<SignUp />} />
         <Route path="/announcementLogin" element={<Login />} />
         <Route path="/CreateAd" element={<CreateAd />} />
@@ -38,7 +43,10 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-code" element={<VerifyCode />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/edit-profile" element={<EditProfile />} /> {/* Nova rota adicionada */}
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/announcementDetails/:id/claim-requests" element={<ClaimRequestsListPage />} />
+        <Route path="/announcementDetails/:id/private-chat" element={<PrivateChat />} />
+        <Route path="/private-chat" element={<DoneeChatsPage />} />
       </Routes>
     </>
   );

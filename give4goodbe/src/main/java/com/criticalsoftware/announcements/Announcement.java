@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -16,13 +18,16 @@ public class Announcement extends PanacheMongoEntity {
 
     private Product product;
     private LocalDateTime date;
-    private String userDonorId;
-    private String userDoneeId;
+        private String userDonorId;
+        private String userDoneeId;
+
+    private List<ClaimRequest> claimRequests = new ArrayList<>();
 
     public Announcement(Product product, String userDonorId) {
         this.product = product;
         this.date = LocalDateTime.now();
         this.userDonorId = userDonorId;
         this.userDoneeId = null;
+        this.claimRequests = new ArrayList<>();
     }
 }
