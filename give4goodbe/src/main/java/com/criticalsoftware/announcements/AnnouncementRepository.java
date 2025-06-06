@@ -66,6 +66,32 @@ public class AnnouncementRepository implements PanacheMongoRepository<Announceme
         return list(query);
     }
 
+    /**
+     * Pesquisa por anúncios não reclamados e não criados pelo donorId,
+     * podendo filtrar por search e por categoria.
+     */
+    public List<Announcement> findUnclaimedNotOwnedByDonorWithSearchAndCategory(String donorId, String search, String category) {
+        List<Document> andConditions = new ArrayList<>();
+        andConditions.add(new Document("userDonorId", new Document("$ne", donorId)));
+        andConditions.add(new Document("userDoneeId", null));
+
+        if (search != null && !search.isBlank()) {
+            Pattern regex = Pattern.compile(".*" + Pattern.quote(search.trim()) + ".*", Pattern.CASE_INSENSITIVE);
+            List<Document> orConditions = new ArrayList<>();
+            orConditions.add(new Document("product.name", regex));
+            orConditions.add(new Document("product.description", regex));
+            andConditions.add(new Document("$or", orConditions));
+        }
+
+        if (category != null && !category.isBlank()) {
+            andConditions.add(new Document("product.category", category));
+        }
+
+        Document query = new Document("$and", andConditions);
+
+        return list(query);
+    }
+
     @Transactional
     public Response undoClaim(String id) {
         Announcement announcement = findAnnouncementById(new ObjectId(id));

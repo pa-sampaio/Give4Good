@@ -10,14 +10,25 @@ function Announcements() {
   const [showSearch, setShowSearch] = useState(false);
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
+  const [category, setCategory] = useState('');
+  const [categories, setCategories] = useState([]);
   const announcementsPerPage = 9;
 
-  // Monta a URL incluindo search se necessário
+  // Busca todas as categorias do backend
+  useEffect(() => {
+    fetch('http://localhost:8080/announcements/categories')
+      .then(res => res.json())
+      .then(data => setCategories(Array.isArray(data) ? data : []))
+      .catch(() => setCategories([]));
+  }, []);
+
+  // Monta a URL incluindo search/category se necessário
   const userId = sessionStorage.getItem("userId");
-  const baseURL = `http://localhost:8080/announcements/unclaimed/not-owned-by/${userId}`;
-  const URL = searchValue
-    ? `${baseURL}?search=${encodeURIComponent(searchValue)}`
-    : baseURL;
+  let baseURL = `http://localhost:8080/announcements/unclaimed/not-owned-by/${userId}`;
+  let urlParams = [];
+  if (searchValue) urlParams.push(`search=${encodeURIComponent(searchValue)}`);
+  if (category) urlParams.push(`category=${encodeURIComponent(category)}`);
+  const URL = urlParams.length ? `${baseURL}?${urlParams.join("&")}` : baseURL;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,6 +54,12 @@ function Announcements() {
     setCurrentPage(1);
   };
 
+  // Handle category change
+  const handleCategoryChange = (e) => {
+    setCategory(e.target.value);
+    setCurrentPage(1);
+  };
+
   const indexOfLastAnnouncement = currentPage * announcementsPerPage;
   const indexOfFirstAnnouncement = indexOfLastAnnouncement - announcementsPerPage;
   const currentAnnouncements = announcements.slice(indexOfFirstAnnouncement, indexOfLastAnnouncement);
@@ -52,7 +69,7 @@ function Announcements() {
 
   return (
     <div>
-      <div className="search-container">
+      <div className="search-container" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {!showSearch ? (
           <button
             className="search-icon-button"
@@ -62,7 +79,7 @@ function Announcements() {
             🔍
           </button>
         ) : (
-          <form className="search-bar-revealed" onSubmit={handleSearch}>
+          <form className="search-bar-revealed" onSubmit={handleSearch} style={{ marginBottom: 0 }}>
             <input
               type="text"
               placeholder="Pesquisar anúncios..."
@@ -80,6 +97,19 @@ function Announcements() {
             </button>
           </form>
         )}
+        <select
+          value={category}
+          onChange={handleCategoryChange}
+          className="category-filter-select"
+          style={{
+            padding: '6px 18px', borderRadius: 6, border: '1px solid #bbb', fontSize: 16, marginLeft: 8
+          }}
+        >
+          <option value="">All categories</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
       </div>
       <div className="announcements">
         {currentAnnouncements.map((announcement) => (

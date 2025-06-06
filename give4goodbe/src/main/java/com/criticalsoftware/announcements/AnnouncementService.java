@@ -35,6 +35,12 @@ public class AnnouncementService {
         return announcementRepository.findUnclaimedNotOwnedByDonorWithSearch(donorId, search).stream().map(this::mapToResponse).toList();
     }
 
+    public List<AnnouncementResponse> getUnclaimedAnnouncementsNotOwnedByDonorWithSearchAndCategory(
+            String donorId, String search, String category) {
+        return announcementRepository.findUnclaimedNotOwnedByDonorWithSearchAndCategory(donorId, search, category)
+                .stream().map(this::mapToResponse).toList();
+    }
+
     public List<AnnouncementResponse> getAnnouncementsNotOwnedByDonor(String donorId) {
         return announcementRepository.findNotOwnedByDonor(donorId).stream().map(this::mapToResponse).toList();
     }

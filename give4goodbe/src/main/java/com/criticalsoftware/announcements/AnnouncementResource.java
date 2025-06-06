@@ -119,6 +119,18 @@ public class AnnouncementResource {
         }
     }
 
+    // NOVO: Endpoint para listar todas as categorias únicas
+    @GET
+    @Path("/categories")
+    public Response getAllCategories() {
+        List<Announcement> list = announcementRepository.listAll();
+        Set<String> categories = list.stream()
+                .map(a -> a.getProduct() != null ? a.getProduct().getCategory() : null)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toCollection(TreeSet::new));
+        return Response.ok(categories).build();
+    }
+
     @PUT
     @Path("/{id:" + ID_REGEX + "}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -443,13 +455,18 @@ public class AnnouncementResource {
         }
     }
 
+    // ALTERADO!!! agora aceita search e category como query param
     @GET
     @Path("/unclaimed/not-owned-by/{donorId:" + ID_REGEX + "}")
     public Response getUnclaimedAnnouncementsNotOwnedBy(
             @PathParam("donorId") String donorId,
-            @QueryParam("search") String search) {
+            @QueryParam("search") String search,
+            @QueryParam("category") String category
+    ) {
         try {
-            return Response.ok(announcementService.getUnclaimedAnnouncementsNotOwnedByDonorWithSearch(donorId, search)).build();
+            return Response.ok(
+                    announcementService.getUnclaimedAnnouncementsNotOwnedByDonorWithSearchAndCategory(donorId, search, category)
+            ).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(REQUEST_ERROR + e.getMessage()).build();
         }

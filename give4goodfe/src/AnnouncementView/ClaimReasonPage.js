@@ -58,12 +58,12 @@ function ClaimReasonPage() {
 
       Swal.fire({
         title: "Request submitted!",
-        text: "Your reason has been submitted. You can now chat privately with the donor.",
+        text: "Your reason has been submitted successfully.",
         icon: "success",
-        confirmButtonText: "Go to Chat",
+        confirmButtonText: "OK",
       }).then(() => {
-        // REDIRECT PARA O PRIVATE CHAT!
-        navigate(`/announcementDetails/${id}/private-chat`);
+        // REDIRECT para a página de anúncios (ou qualquer outra página que não seja o chat privado)
+        navigate("/announcements");
       });
     } catch (err) {
       Swal.fire({
