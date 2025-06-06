@@ -1,0 +1,49 @@
+/* Header.css */
+.styled-app-bar {
+    background-color: #ff0000 !important;
+    padding: 10px 0;
+  }
+  
+  .brand-typography {
+    font-family: 'Cambria', Cochin, Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    color: white;
+    font-size: 2.5rem;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  
+  .header-link {
+    text-transform: none !important;
+    color: white !important;
+    font-weight: normal !important;
+    font-size: 1.1rem !important;
+    margin: 0 10px !important;
+    transition: transform 0.3s ease !important;
+  }
+  
+  .header-link-active {
+    font-weight: bold !important;
+  }
+  
+  .header-link:hover {
+    transform: scale(1.1);
+  }
+  
+  .styled-menu .MuiPaper-root {
+    background-color: rgba(255, 0, 0, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .styled-menu-item {
+    color: white !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .styled-menu-item:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.05);
+  }
+  

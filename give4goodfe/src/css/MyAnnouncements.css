@@ -1,0 +1,158 @@
+/* MyAnnouncements.css */
+.ma-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-size: 400% 400%;
+  animation: ma-gradientAnimation 15s ease infinite;
+}
+
+.ma-title {
+  color: #c51d23;
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: default;
+  animation: ma-floatAnimation 3s ease-in-out infinite;
+}
+
+.ma-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  justify-content: center;
+}
+
+.ma-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  border: 2px solid #e0e0e0;
+}
+
+.ma-new-announcement-card {
+  justify-content: center;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f8f8f8, #e6e6e6);
+  position: relative;
+  overflow: hidden;
+  animation: ma-floatAnimation 3s ease-in-out infinite;
+  border: 2px solid #d0d0d0;
+}
+
+.ma-new-announcement-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+  transform: rotate(45deg);
+  transition: all 0.5s ease;
+  opacity: 0;
+}
+
+.ma-new-announcement-card:hover::before {
+  opacity: 1;
+}
+
+.ma-plus-icon {
+  font-size: 4rem;
+  color: #c51d23;
+  margin-bottom: 1rem;
+  animation: ma-pulseAnimation 2s infinite;
+}
+
+.ma-card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  border: 2px solid #f0f0f0;
+}
+
+.ma-card-title {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.ma-card-category {
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.ma-edit-button {
+  background-color: #c51d23;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ma-edit-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.ma-edit-button:hover::after {
+  animation: ma-ripple 1s ease-out;
+}
+
+.ma-edit-button:hover {
+  background-color: #a5171d;
+}
+
+@keyframes ma-gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes ma-floatAnimation {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes ma-pulseAnimation {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes ma-ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(20, 20);
+    opacity: 0;
+  }
+}

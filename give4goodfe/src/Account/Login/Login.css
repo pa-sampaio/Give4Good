@@ -1,0 +1,97 @@
+.container {
+  display: flex;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 50px 20px rgba(0, 0, 0, 0.2);
+  max-width: 80vw;
+  margin: 0 auto; /* Center the container horizontally */
+  height: 80vh; /* Ensure the container has a height */
+  margin-top: 50px;
+}
+
+.login-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background-color: #f9f9f9;
+}
+
+.login-form h1 {
+  color: #c01722;
+  font-size: 50px;
+  margin-bottom: 60px;
+}
+
+.login-form form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.login-form .input-group {
+  margin-bottom: 40px;
+  width: 80%;
+}
+
+.login-form .input-group label {
+  display: block;
+  margin-bottom: 10px;
+  color: #7e7e7e;
+}
+
+.login-form .input-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #7e7e7e;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.signUp-text {
+  margin-top: 60px;
+  margin-bottom: 20px;
+}
+
+.login-form p {
+  text-align: center;
+  color: #7e7e7e;
+}
+
+.login-form p a {
+  color: #c01722;
+  text-decoration: none;
+}
+
+.image-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 0 20px 20px 0;
+}
+
+.image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.forgot-password {
+  margin-top: 10px;
+  text-align: right;
+}
+
+.forgot-password a {
+  color: #c51d23;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}

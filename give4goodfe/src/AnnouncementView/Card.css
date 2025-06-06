@@ -1,0 +1,230 @@
+.card-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: #f7f7f7;
+  padding: 40px 0;
+}
+
+.card {
+  background-color: #fff;
+  width: 900px;   /* <-- largura aumentada */
+  max-width: 98vw; /* <-- largura máxima aumentada para responsividade */
+  min-height: 88vh;
+  max-height: 95vh;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 50px 20px rgba(192, 23, 34, 0.08);
+  padding: 36px 32px 24px 32px;
+  display: flex;
+  flex-direction: column;
+  align-self: center;
+  box-sizing: border-box;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  flex: 1 1 auto;
+}
+
+/* ...restante igual ao anterior... */
+
+.card-header {
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-image {
+  width: 250px;
+  height: 200px;
+  max-width: 250px;
+  max-height: 200px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f2f2f2;
+  border-radius: 24px;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 24px;
+}
+
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e2e2;
+  border-radius: 24px;
+  color: #aaa;
+  font-size: 1rem;
+}
+
+.card-text {
+  width: 100%;
+  margin-left: 40px;
+  margin-right: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.card-title {
+  font-size: 28px;
+  color: #C01722;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.card-category {
+  font-size: 18px;
+  color: #CB5C63;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+.card-description {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.7;
+  font-weight: 400;
+  margin-bottom: 0;
+}
+
+.card-navigation-Buttons {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 32px;
+}
+
+.left-arrow-details {
+  display: flex;
+  align-items: center;
+  color: #7e7e7e;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 20px;
+  transition: color 0.2s;
+}
+.left-arrow-details :hover {
+  color: #C01722;
+}
+
+.card-navigation {
+  display: flex;
+  align-items: center;
+}
+
+.confirm-button {
+  background-color: #C01722 !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.card-comments-section {
+  margin-top: 32px;
+  background: #f3f3f3;
+  border-radius: 10px;
+  padding: 18px;
+  max-height: 400px; /* aumentado para melhor área de visualização */
+  min-height: 120px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 8px rgba(192, 23, 34, 0.05);
+}
+
+.card-comments-section h3 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #C01722;
+  margin-bottom: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.card-comments-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 10px 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  max-height: 260px; /* aumentado para mostrar mais comentários */
+}
+
+.card-comment-item {
+  margin-bottom: 5px;
+  font-size: 0.97rem;
+  color: #444;
+  background: #fff;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+.card-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.card-comment-textarea {
+  resize: vertical;
+  min-height: 32px;
+  max-height: 60px;
+  padding: 7px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid #bbb;
+  color: #333;
+  background: #fff;
+  font-family: inherit;
+}
+
+.card-comment-submit {
+  align-self: flex-end;
+  padding: 6px 16px;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: none;
+  background: #C01722;
+  color: #fff;
+  cursor: pointer;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: background 0.2s;
+}
+.card-comment-submit:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+
+.toggle-comments-btn {
+  padding: 8px 20px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  background: #C01722;
+  color: #fff;
+  cursor: pointer;
+  margin-bottom: 8px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  transition: background 0.2s;
+}
+.toggle-comments-btn:hover {
+  background: #a0121c;
+}

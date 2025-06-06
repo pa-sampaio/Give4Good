@@ -1,0 +1,44 @@
+/* HeroSection.css */
+.hero-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: url('/public/background2.jpg') no-repeat center center/cover;
+    text-align: center;
+    color: white;
+    padding: 20px;
+  }
+  
+  .hero-button {
+    margin-top: 200px;
+    padding: 25px 60px;
+    border-radius: 30px;
+    background-color: #d32f2f !important;
+    color: #fff !important;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-transform: lowercase;
+    transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
+  }
+  
+  .hero-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+    background-color: #b71c1c !important;
+  }
+  
+  .rotating-words {
+    color: red;
+    font-weight: bold;
+    display: inline-block;
+    margin-left: 5px;
+  }
+  
+  .donation-text {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-top: 3px;
+  }
+  

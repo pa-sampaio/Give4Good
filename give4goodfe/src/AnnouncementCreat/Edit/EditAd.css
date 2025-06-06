@@ -1,0 +1,197 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  header {
+    background-color: #f5f5f5; /* Cor do cabeçalho, ajuste conforme necessário */
+    padding: 10px;
+  }
+  
+  
+  
+  .create-ad-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 90vh;
+    background-color: #ffffff;
+  }
+  
+  .create-ad-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 10px 50px 20px rgba(0, 0, 0, 0.2);
+    display: flex;
+    gap: 20px;
+    width: 90vw;
+    height: 390px;
+    position: relative; /* Adicionado para posicionar o botão */
+  }
+  
+  .image-preview-container {
+    position: relative;
+    width: 217px; /* Largura desejada do contêiner */
+    height: 217px; /* Altura desejada do contêiner */
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #fafafa;
+    margin-top: 9px;
+    transition: transform 0.3s ease; 
+  }
+  
+  .image-preview-container:hover {
+    transform: scale(1.1); 
+  }
+  
+  .image-placeholder {
+    color: #999;
+    text-align: center;
+  }
+  
+  .image-preview {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Ajusta a imagem para caber dentro do contêiner sem cortes */
+  }
+  
+  .file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  
+  .input-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .text-input-description-input {
+    padding: 12px;
+    border: 1px solid #E5E5E5;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 100%;
+    height: 140px;
+    box-sizing: border-box;
+    padding: 5px;
+    align-self: center; 
+  }
+  
+  .text-input,
+  .text-input-category {
+    padding: 12px;
+    border: 1px solid #E5E5E5;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 100%;
+    box-sizing: border-box;
+    align-self: center; 
+  }
+  
+  .text-input-category {
+    color: #B1B1B1;
+  }
+  
+  .text-input-description-input::placeholder,
+  .text-input::placeholder {
+    color: #B1B1B1;
+  }
+  
+  .text-input:focus,
+  .text-input-category:focus,
+  .text-input-description-input:focus {
+    border-color: #a31218;
+    outline: none;
+  }
+  
+  .Delete-button-container,
+  .Edit-button-container {
+      position: absolute;
+      bottom: 20px;
+      display: flex; 
+      justify-content: flex-end;
+    }
+  
+    .Delete-button-container{
+      right: 20px;
+    }
+  
+    .Edit-button-container{
+      right: 150px;
+    }
+  
+  .Delete-button,
+  .Edit-button {
+    width: 100px;
+    padding: 8px 16px;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .Delete-button{
+    background-color: #a31218;
+  }
+  
+  .Edit-button{
+    background-color: #B1B1B1;
+  }
+  
+  .Delete-button:hover{
+    background-color: #C01722;
+    transform: scale(1.1);
+  }
+  
+  .Edit-button:hover {
+    background-color: #D3D3D3;
+    transform: scale(1.1);
+  }
+  
+  .url-input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    width: 220px;
+    box-sizing: border-box;
+    align-self: center;
+
+  }
+  
+  .url-input:focus {
+    border-color: #a31218;
+    outline: none;
+  }
+
+.url-container{
+  position: absolute;
+  bottom: 110px;
+  left: 10px;
+  display: flex; 
+  justify-content: flex-end;
+}
+
