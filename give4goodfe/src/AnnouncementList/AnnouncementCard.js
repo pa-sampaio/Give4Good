@@ -2,15 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AnnouncementCard.css';
 
-// Função para cor do status
 const getStatusColor = (status) => {
-  if (status === "available") return "#4caf50";      // green
-  if (status === "sent") return "#ffb300";           // yellow
-  if (status === "unavailable") return "#c51d23";    // red
+  if (status === "available") return "#4caf50";
+  if (status === "sent") return "#ffb300";
+  if (status === "unavailable") return "#c51d23";
   return "#bbb";
 };
 
-// Badge visual para o status
 const StatusBadge = ({ status }) => (
   <span
     style={{
@@ -54,16 +52,15 @@ function AnnouncementCard({ announcement }) {
   };
 
   const product = announcement.product || {};
-
-  // Corrige o src para garantir que não há espaços extras e faz fallback para mostrar erro de imagem
   const [imgError, setImgError] = useState(false);
+  const numClaims = announcement.claimRequests ? announcement.claimRequests.length : 0;
 
   return (
     <div className="announcement-card">
       {product.photoUrl && !imgError ? (
         <img
           src={product.photoUrl}
-          alt="Announcement image"
+          alt={product.name || "Product"}
           className="announcement-image"
           onError={() => setImgError(true)}
           style={{ objectFit: "cover" }}
@@ -77,11 +74,15 @@ function AnnouncementCard({ announcement }) {
       <h2 className="announcement-title">{product.name || "No title available"}</h2>
       <p className="announcement-category">{product.category || "No category specified"}</p>
 
-      {/* Mostra status para todos */}
       <StatusBadge status={announcement.status} />
 
       <p className="announcement-author">
         <strong>By:</strong> {donorName}
+      </p>
+
+      <p className="announcement-claims" style={{ marginTop: 8, fontSize: 15, color: "#555" }}>
+        <span role="img" aria-label="claims">🤝</span>
+        {numClaims} {numClaims === 1 ? 'claim' : 'claims'} recebidos
       </p>
 
       <button className="more-button" onClick={handleMoreClick}>More</button>

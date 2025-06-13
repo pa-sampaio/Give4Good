@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AnnouncementCard.css';
 
@@ -54,8 +54,10 @@ function AnnouncementCard({ announcement, isDonorView, onStatusUpdated }) {
   const navigate = useNavigate();
   const [donorName, setDonorName] = useState("Unknown");
   const [status, setStatus] = useState(announcement.status || "available");
+  const [imgError, setImgError] = useState(false);
 
-  React.useEffect(() => {
+  // Atualiza o nome do doador
+  useEffect(() => {
     if (announcement.userDonorId) {
       fetch(`http://localhost:8080/users/${announcement.userDonorId}`)
         .then(response => {
@@ -81,14 +83,16 @@ function AnnouncementCard({ announcement, isDonorView, onStatusUpdated }) {
   };
 
   const product = announcement.product || {};
-  const [imgError, setImgError] = useState(false);
+
+  // ATUALIZADO: Exibe sempre o número de claims recebidos (vem do backend)
+  const numClaims = announcement.claimRequests ? announcement.claimRequests.length : 0;
 
   return (
     <div className="announcement-card">
       {product.photoUrl && !imgError ? (
         <img
           src={product.photoUrl}
-          alt="Announcement image"
+          alt={product.name || ""}
           className="announcement-image"
           onError={() => setImgError(true)}
           style={{ objectFit: "cover" }}
@@ -115,6 +119,11 @@ function AnnouncementCard({ announcement, isDonorView, onStatusUpdated }) {
           />
         }
       </div>
+      {/* NOVO: Número de claims recebidos sempre atualizado */}
+      <p style={{ margin: "12px 0 0 0", fontSize: 16, color: "#555", textAlign: "center" }}>
+        <span role="img" aria-label="claims">🤝</span>{" "}
+        {numClaims} {numClaims === 1 ? "claim" : "claims"} recebidos
+      </p>
       <button className="more-button" onClick={handleMoreClick}>More</button>
     </div>
   );

@@ -113,7 +113,7 @@ const Header = () => {
             aria-haspopup="true"
             onClick={handleClick}
             endIcon={<ArrowDropDownIcon />}
-            className={`header-link ${(location.pathname === '/announcements' || location.pathname === '/my-announcements') ? 'header-link-active' : ''}`}
+            className={`header-link ${(location.pathname.startsWith('/announcements') || location.pathname === '/my-announcements' || location.pathname === '/my-claims') ? 'header-link-active' : ''}`}
           >
             {capitalizeFirstLetter('announcements')}
           </Button>
@@ -130,6 +130,9 @@ const Header = () => {
             </MenuItem>
             <MenuItem component={Link} to="/my-announcements" onClick={handleClose} className="styled-menu-item">
               {capitalizeFirstLetter('my announcements')}
+            </MenuItem>
+            <MenuItem component={Link} to="/my-claims" onClick={handleClose} className="styled-menu-item">
+              {capitalizeFirstLetter('my claims')}
             </MenuItem>
           </Menu>
           {canShowChatMenu && (

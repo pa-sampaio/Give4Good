@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import Button from "@mui/material/Button";
 import PrivateChat from "./PrivateChat"; 
 
+// Caso ainda utilize CSS injetado, mantenha aqui.
+// Se já usa .css externo, pode remover as próximas duas definições.
 const styles = `
 .card-container {
   display: flex;
@@ -129,7 +131,6 @@ const styles = `
   font-weight: 500;
   letter-spacing: 0.5px;
 }
-/* Aumentar o campo de comentários */
 .card-comments-section {
   margin-top: 32px;
   background: #f3f3f3;
@@ -229,7 +230,6 @@ const styles = `
   justify-content: flex-end !important;
 }
 `;
-
 function injectStyles(styles) {
   if (!document.getElementById('cardjs-inline-styles')) {
     const style = document.createElement('style');
@@ -273,12 +273,7 @@ function Card({ onClose }) {
 
   const { id } = useParams();
   const navigate = useNavigate();
-  const [announcementDetailsName, setAnnouncementName] = useState(null);
-  const [announcementDetailsCategory, setAnnouncementCategory] = useState(null);
-  const [announcementDetailsDescription, setAnnouncementDescription] = useState(null);
-  const [announcementDetailsImage, setAnnouncementDetailsImage] = useState(null);
-  const [announcementDonorId, setAnnouncementDonorId] = useState(null);
-  const [announcementDoneeId, setAnnouncementDoneeId] = useState(null);
+  const [announcement, setAnnouncement] = useState(null);
   const [error, setError] = useState(null);
 
   const userId = sessionStorage.getItem("userId");
@@ -302,12 +297,7 @@ function Card({ onClose }) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setAnnouncementName(data.product.name);
-        setAnnouncementCategory(data.product.category);
-        setAnnouncementDescription(data.product.description);
-        setAnnouncementDetailsImage(data.product.photoUrl);
-        setAnnouncementDonorId(data.userDonorId || data.donorId || null);
-        setAnnouncementDoneeId(data.userDoneeId || null);
+        setAnnouncement(data);
       } catch (error) {
         setError(error.message);
         Swal.fire({
@@ -344,7 +334,6 @@ function Card({ onClose }) {
 
   useEffect(() => {
     if (showComments) fetchComments();
-    // eslint-disable-next-line
   }, [id, showComments]);
 
   const handleCommentSubmit = async (e) => {
@@ -378,7 +367,19 @@ function Card({ onClose }) {
     setSubmittingComment(false);
   };
 
-  const canShowPrivateChat = (userId && (userId === announcementDonorId || userId === announcementDoneeId)) && announcementDoneeId;
+  // Exiba o chat apenas para donor ou donee escolhido
+  const canShowPrivateChat = announcement && userId && (userId === announcement.userDonorId || userId === announcement.userDoneeId) && announcement.userDoneeId;
+
+  if (!announcement) {
+    return (
+      <div className="card-container">
+        <div className="card">Loading...</div>
+      </div>
+    );
+  }
+
+  // Calcule o número de claims recebidos (certifique-se que o backend inclui claimRequests!)
+  const numClaims = announcement.claimRequests ? announcement.claimRequests.length : 0;
 
   return (
     <div className="card-container">
@@ -386,8 +387,8 @@ function Card({ onClose }) {
         <div className="card-content">
           <div className="card-header">
             <div className="card-image">
-              {announcementDetailsImage ? (
-                <img src={announcementDetailsImage} alt="Announcement" />
+              {announcement.product && announcement.product.photoUrl ? (
+                <img src={announcement.product.photoUrl} alt={announcement.product.name || "Product photo"} />
               ) : (
                 <div className="image-placeholder">No Image Available</div>
               )}
@@ -396,13 +397,18 @@ function Card({ onClose }) {
           <div className="card-text">
             <div className="text-and-button">
               <div className="text-container">
-                <h1 className="card-title">{announcementDetailsName}</h1>
-                <h2 className="card-category">{announcementDetailsCategory}</h2>
+                <h1 className="card-title">{announcement.product ? announcement.product.name : ""}</h1>
+                <h2 className="card-category">{announcement.product ? announcement.product.category : ""}</h2>
                 <p className="card-description">
-                  {announcementDetailsDescription}
+                  {announcement.product ? announcement.product.description : ""}
                 </p>
               </div>
             </div>
+            {/* Mostre o número de claims recebidos para o dono */}
+            <p style={{ margin: '18px 0 0 0', fontSize: 17, color: '#555', textAlign: 'center' }}>
+              <span role="img" aria-label="claims">🤝</span>
+              {numClaims} {numClaims === 1 ? "claim" : "claims"} recebidos
+            </p>
           </div>
         </div>
         <div className="card-navigation-Buttons">
@@ -459,7 +465,7 @@ function Card({ onClose }) {
           <PrivateChat
             announcementId={id}
             userId={userId}
-            recipientId={userId === announcementDonorId ? announcementDoneeId : announcementDonorId}
+            recipientId={userId === announcement.userDonorId ? announcement.userDoneeId : announcement.userDonorId}
           />
         )}
       </div>
