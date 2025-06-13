@@ -1,25 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AnnouncementCard from './AnnouncementCard';
 import './Announcement.css';
+import { useLoading } from '../contexts/LoadingContext';
 
 function Announcements() {
   const [currentPage, setCurrentPage] = useState(1);
   const [announcements, setAnnouncements] = useState([]);
-  const [error, setError] = useState(null);
-  const [fetched, setFetched] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [search, setSearch] = useState('');
   const [searchValue, setSearchValue] = useState('');
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState([]);
   const announcementsPerPage = 9;
+  const { setLoading } = useLoading();
+  const isMounted = useRef(true);
 
-  // Busca todas as categorias do backend
+  // Delay helper
+  function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+
+  // Carrega categorias (SEM mexer no loading global)
   useEffect(() => {
     fetch('http://localhost:8080/announcements/categories')
       .then(res => res.json())
-      .then(data => setCategories(Array.isArray(data) ? data : []))
-      .catch(() => setCategories([]));
+      .then(data => isMounted.current && setCategories(Array.isArray(data) ? data : []))
+      .catch(() => isMounted.current && setCategories([]));
   }, []);
 
   // Monta a URL incluindo search/category se necessário
@@ -30,31 +36,49 @@ function Announcements() {
   if (category) urlParams.push(`category=${encodeURIComponent(category)}`);
   const URL = urlParams.length ? `${baseURL}?${urlParams.join("&")}` : baseURL;
 
+  // Loader: desaparece mesmo que haja 0 anúncios!
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(URL);
-        const data = await response.json();
-        setAnnouncements(data);
-        setFetched(true);
-      } catch (error) {
-        setError(error.message);
+    isMounted.current = true;
+    let cancelled = false;
+
+    async function fetchWithRetry() {
+      setLoading(true);
+      while (!cancelled) {
+        try {
+          const response = await fetch(URL, { method: "GET" });
+          if (!response.ok) throw new Error("Server error");
+          const data = await response.json();
+
+          if (isMounted.current) {
+            setAnnouncements(data);
+            // Loader desaparece após qualquer resposta válida!
+            setLoading(false);
+            break;
+          }
+        } catch (err) {
+          await sleep(2000);
+        }
       }
+    }
+
+    fetchWithRetry();
+
+    return () => {
+      cancelled = true;
+      isMounted.current = false;
     };
-    fetchData();
-  }, [URL]);
+    // eslint-disable-next-line
+  }, [URL, setLoading]);
 
   const handleNext = () => setCurrentPage((prevPage) => prevPage + 1);
   const handlePrev = () => setCurrentPage((prevPage) => prevPage - 1);
 
-  // Pesquisa ao pressionar Enter ou clicar na lupa
   const handleSearch = (e) => {
     e.preventDefault();
     setSearchValue(search);
     setCurrentPage(1);
   };
 
-  // Handle category change
   const handleCategoryChange = (e) => {
     setCategory(e.target.value);
     setCurrentPage(1);
@@ -111,6 +135,7 @@ function Announcements() {
           ))}
         </select>
       </div>
+
       <div className="announcements">
         {currentAnnouncements.map((announcement) => (
           <AnnouncementCard key={announcement.id} announcement={announcement} />

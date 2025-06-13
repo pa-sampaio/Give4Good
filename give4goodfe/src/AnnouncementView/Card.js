@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Button from "@mui/material/Button";
-import PrivateChat from "./PrivateChat"; // Import the chat component
+import PrivateChat from "./PrivateChat"; 
 
 // Caso ainda utilize CSS injetado, mantenha aqui.
 // Se já usa .css externo, pode remover as próximas duas definições.
@@ -317,7 +317,6 @@ function Card({ onClose }) {
     fetchAnnouncementDetails();
   }, [id]);
 
-  // Fetch comments only when showComments is true and only when it's toggled on
   const fetchComments = async () => {
     setLoadingComments(true);
     try {
@@ -356,7 +355,7 @@ function Card({ onClose }) {
         throw new Error("Failed to submit comment");
       }
       setNewComment("");
-      await fetchComments();
+      await fetchComments(); 
     } catch (err) {
       Swal.fire({
         title: "Error!",

@@ -317,6 +317,30 @@ public class AnnouncementResource {
 
     // ===== END MENSAGENS =====
 
+    // NOVO: Endpoint para donor iniciar chat com candidate (chatStartedWith)
+    @POST
+    @Path("/{id:" + ID_REGEX + "}/start-chat")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startChatWithDonee(@PathParam("id") String id, Map<String, String> body) {
+        String doneeId = body.get("doneeId");
+        if (doneeId == null || doneeId.isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("doneeId is required.").build();
+        }
+        Announcement announcement = announcementRepository.findAnnouncementById(new ObjectId(id));
+        if (announcement == null) {
+            return Response.status(Response.Status.NOT_FOUND).entity("Announcement not found.").build();
+        }
+        if (announcement.getChatStartedWith() == null) {
+            announcement.setChatStartedWith(new ArrayList<>());
+        }
+        if (!announcement.getChatStartedWith().contains(doneeId)) {
+            announcement.getChatStartedWith().add(doneeId);
+            announcementRepository.persistOrUpdate(announcement);
+        }
+        return Response.ok().entity(Map.of("message", "Chat started with candidate.")).build();
+    }
+
     @PUT
     @Path("/{announcementId:" + ID_REGEX + "}/userDonee/{userId:" + ID_REGEX + "}")
     public Response updateUserDonee(@PathParam("announcementId") String announcementId, @PathParam("userId") String userId) {
@@ -413,11 +437,12 @@ public class AnnouncementResource {
         }
     }
 
+    // ALTERADO: agora retorna todos os anúncios onde o donee foi selecionado ou teve chat iniciado
     @GET
     @Path("/donee/{doneeId:" + ID_REGEX + "}")
     public Response getByDoneeId(@PathParam("doneeId") String doneeId) {
         try {
-            return Response.ok(announcementService.getAnnouncementsByDoneeId(doneeId)).build();
+            return Response.ok(announcementService.getAnnouncementsWithChatForDonee(doneeId)).build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(REQUEST_ERROR + e.getMessage()).build();
         }

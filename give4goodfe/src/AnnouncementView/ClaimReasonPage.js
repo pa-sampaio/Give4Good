@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 function ClaimReasonPage() {
-  const { id } = useParams(); // announcement ID
+  const { id } = useParams(); 
   const navigate = useNavigate();
   const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,7 +27,6 @@ function ClaimReasonPage() {
         let errorMsg = "Error submitting the reason.";
         try {
           const data = await response.json();
-          // Handle duplicate claim error (backend returns message in Portuguese or English)
           if (
             (typeof data.message === "string" && (
               data.message.toLowerCase().includes("já fizeste um pedido") ||
@@ -62,7 +61,6 @@ function ClaimReasonPage() {
         icon: "success",
         confirmButtonText: "OK",
       }).then(() => {
-        // REDIRECT para a página de anúncios (ou qualquer outra página que não seja o chat privado)
         navigate("/announcements");
       });
     } catch (err) {

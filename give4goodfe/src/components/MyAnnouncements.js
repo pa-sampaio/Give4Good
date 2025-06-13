@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import '../css/MyAnnouncements.css';
+import { useLoading } from '../contexts/LoadingContext';
 
 // Animation keyframes
 const gradientAnimation = keyframes`
@@ -357,50 +358,74 @@ const MyAnnouncements = () => {
   const [comments, setComments] = useState({}); // {announcementId: [comments]}
   const [claims, setClaims] = useState({}); // {announcementId: [claimRequests]}
   const navigate = useNavigate();
+  const { setLoading } = useLoading();
+  const isMounted = useRef(true);
+
+  // Helper para delay
+  function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`http://localhost:8080/announcements/donor/${sessionStorage.getItem('userId')}`);
-        const data = await response.json();
-        setAnnouncements(data);
+    isMounted.current = true;
+    let cancelled = false;
+    async function fetchWithRetry() {
+      setLoading(true);
+      while (!cancelled) {
+        try {
+          const response = await fetch(`http://localhost:8080/announcements/donor/${sessionStorage.getItem('userId')}`);
+          if (!response.ok) throw new Error();
+          const data = await response.json();
+          if (isMounted.current) {
+            setAnnouncements(data);
 
-        // Fetch comments and claims for each announcement in parallel
-        const commentsObj = {};
-        const claimsObj = {};
-        await Promise.all(
-          data.map(async (announcement) => {
-            try {
-              const resCom = await fetch(`http://localhost:8080/announcements/${announcement.id}/comments`);
-              if (resCom.ok) {
-                commentsObj[announcement.id] = await resCom.json();
-              } else {
-                commentsObj[announcement.id] = [];
-              }
-            } catch {
-              commentsObj[announcement.id] = [];
-            }
-            try {
-              const resClaims = await fetch(`http://localhost:8080/announcements/${announcement.id}/claim-requests`);
-              if (resClaims.ok) {
-                claimsObj[announcement.id] = await resClaims.json();
-              } else {
-                claimsObj[announcement.id] = [];
-              }
-            } catch {
-              claimsObj[announcement.id] = [];
-            }
-          })
-        );
-        setComments(commentsObj);
-        setClaims(claimsObj);
-      } catch (error) {
-        console.error('Error fetching announcements:', error);
+            // Fetch comments and claims for each announcement in parallel
+            const commentsObj = {};
+            const claimsObj = {};
+            await Promise.all(
+              data.map(async (announcement) => {
+                try {
+                  const resCom = await fetch(`http://localhost:8080/announcements/${announcement.id}/comments`);
+                  if (resCom.ok) {
+                    commentsObj[announcement.id] = await resCom.json();
+                  } else {
+                    commentsObj[announcement.id] = [];
+                  }
+                } catch {
+                  commentsObj[announcement.id] = [];
+                }
+                try {
+                  const resClaims = await fetch(`http://localhost:8080/announcements/${announcement.id}/claim-requests`);
+                  if (resClaims.ok) {
+                    claimsObj[announcement.id] = await resClaims.json();
+                  } else {
+                    claimsObj[announcement.id] = [];
+                  }
+                } catch {
+                  claimsObj[announcement.id] = [];
+                }
+              })
+            );
+            setComments(commentsObj);
+            setClaims(claimsObj);
+
+            // Loader desaparece mesmo se vier array vazio
+            setLoading(false);
+            break;
+          }
+        } catch {
+          await sleep(2000);
+        }
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchWithRetry();
+
+    return () => {
+      cancelled = true;
+      isMounted.current = false;
+    };
+  }, [setLoading]);
 
   return (
     <PageContainer
