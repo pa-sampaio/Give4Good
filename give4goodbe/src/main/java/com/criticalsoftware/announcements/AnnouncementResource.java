@@ -35,7 +35,7 @@ public class AnnouncementResource {
     CommentRepository commentRepository;
 
     @Inject
-    MessageRepository messageRepository; // <-- Adicionado para mensagens
+    MessageRepository messageRepository;
 
     private boolean isInvalidId(String id) {
         return !id.matches(ID_REGEX);
@@ -119,7 +119,6 @@ public class AnnouncementResource {
         }
     }
 
-    // NOVO: Endpoint para listar todas as categorias únicas
     @GET
     @Path("/categories")
     public Response getAllCategories() {
@@ -164,17 +163,13 @@ public class AnnouncementResource {
         return announcementRepository.undoClaim(id);
     }
 
-    // ==============================
-    // NOVOS ENDPOINTS PARA CLAIM PEDIDOS
-    // ==============================
+    // ===== CLAIM REQUESTS =====
 
-    // DTO para receber o motivo do claim
     public static class ClaimRequestDTO {
         public String userId;
         public String reason;
     }
 
-    // POST /announcements/{id}/claim
     @POST
     @Path("/{id:" + ID_REGEX + "}/claim")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -188,14 +183,12 @@ public class AnnouncementResource {
             return Response.status(Response.Status.NOT_FOUND).entity("Announcement not found.").build();
         }
 
-        // Verificar se já existe um pedido deste user
         boolean alreadyRequested = announcement.getClaimRequests().stream()
                 .anyMatch(req -> req.getUserId().equals(dto.userId));
         if (alreadyRequested) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Já fizeste um pedido para este anúncio.").build();
         }
 
-        // Buscar nome do user (opcional, só para mostrar depois)
         String username = "User";
         User user = null;
         try {
@@ -214,12 +207,12 @@ public class AnnouncementResource {
         );
 
         announcement.getClaimRequests().add(request);
+        announcement.setStatus("claimed");
         announcementRepository.persistOrUpdate(announcement);
 
         return Response.status(Response.Status.CREATED).entity(request).build();
     }
 
-    // GET /announcements/{id}/claim-requests
     @GET
     @Path("/{id:" + ID_REGEX + "}/claim-requests")
     @Produces(MediaType.APPLICATION_JSON)
@@ -231,9 +224,8 @@ public class AnnouncementResource {
         return Response.ok(announcement.getClaimRequests()).build();
     }
 
-    // PUT /announcements/{id}/select-claim
     public static class SelectClaimDTO {
-        public String userId; // userId do claim vencedor
+        public String userId;
     }
 
     @PUT
@@ -254,7 +246,6 @@ public class AnnouncementResource {
         return Response.ok(announcementService.mapToResponse(announcement)).build();
     }
 
-    // Permite ao donor escolher quem recebe o produto
     @PUT
     @Path("/{id:" + ID_REGEX + "}/select-claim")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -285,11 +276,9 @@ public class AnnouncementResource {
         return Response.ok(announcement).build();
     }
 
-    // ==============================
-    // FIM DOS NOVOS ENDPOINTS
-    // ==============================
+    // ===== END CLAIM REQUESTS =====
 
-    // ==== MENSAGENS (CHAT) ====
+    // ===== MENSAGENS (CHAT) =====
 
     public static class MessageDTO {
         public String senderId;
@@ -326,7 +315,7 @@ public class AnnouncementResource {
         return Response.ok(msgs).build();
     }
 
-    // ==== FIM MENSAGENS ====
+    // ===== END MENSAGENS =====
 
     @PUT
     @Path("/{announcementId:" + ID_REGEX + "}/userDonee/{userId:" + ID_REGEX + "}")
@@ -345,7 +334,6 @@ public class AnnouncementResource {
             announcement.setUserDoneeId(userId);
             announcementRepository.persistOrUpdate(announcement);
 
-            // Notificar o dono do anúncio com nome, email e telefone de quem resgatou
             User userDonor = userRepository.findById(new ObjectId(announcement.getUserDonorId()));
             if (userDonor != null && userDonor.getContact() != null && userDonor.getContact().getEmail() != null) {
                 String donorEmail = userDonor.getContact().getEmail();
@@ -368,7 +356,7 @@ public class AnnouncementResource {
                 try {
                     com.criticalsoftware.users.EmailSender.sendEmail(donorEmail, subject, body);
                 } catch (Exception e) {
-                    // Loga erro se quiseres
+                    // Log error if needed
                 }
             }
 
@@ -455,7 +443,6 @@ public class AnnouncementResource {
         }
     }
 
-    // ALTERADO!!! agora aceita search e category como query param
     @GET
     @Path("/unclaimed/not-owned-by/{donorId:" + ID_REGEX + "}")
     public Response getUnclaimedAnnouncementsNotOwnedBy(
@@ -484,7 +471,6 @@ public class AnnouncementResource {
 
     // ==== COMMENTS ENDPOINTS ====
 
-    // List comments for an announcement
     @GET
     @Path("/{id:" + ID_REGEX + "}/comments")
     public Response getComments(@PathParam("id") String id) {
@@ -493,7 +479,6 @@ public class AnnouncementResource {
         return Response.ok(comments).build();
     }
 
-    // Add a comment to an announcement
     @POST
     @Path("/{id:" + ID_REGEX + "}/comments")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -527,5 +512,24 @@ public class AnnouncementResource {
         );
         commentRepository.persist(comment);
         return Response.status(Response.Status.CREATED).entity(comment).build();
+    }
+
+    // ==== NOVO: Endpoint para anúncios que o usuário fez claim ====
+    /**
+     * GET /announcements/users/{userId}/claims
+     * Retorna todos os anúncios que o usuário já fez claim (independente de ter sido escolhido).
+     */
+    @GET
+    @Path("/users/{userId}/claims")
+    public Response getAnnouncementsUserClaimed(@PathParam("userId") String userId) {
+        List<Announcement> allAnnouncements = announcementRepository.listAll();
+        List<Announcement> claimedByUser = allAnnouncements.stream()
+                .filter(announcement ->
+                        announcement.getClaimRequests() != null &&
+                                announcement.getClaimRequests().stream()
+                                        .anyMatch(claim -> userId.equals(claim.getUserId()))
+                )
+                .collect(Collectors.toList());
+        return Response.ok(claimedByUser).build();
     }
 }

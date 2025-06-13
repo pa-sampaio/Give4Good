@@ -6,9 +6,9 @@ import Header from './components/Header';
 import HomePage from './components/HomePage';
 import AboutUs from './components/AboutUs';
 import MyAnnouncements from './components/MyAnnouncements';
+import MyClaims from './components/MyClaims';
 import SignUp from './components/SignUp';
 import React from "react";
-import "./App.css";
 import Card from "./AnnouncementView/Card.js";
 import Login from "./Account/Login/Login.js";
 import CreateAd from "./AnnouncementCreat/Edit/CreateAd.js";
@@ -32,6 +32,7 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="/about-us" element={<AboutUs />} />
         <Route path="/my-announcements" element={<MyAnnouncements />} />
+        <Route path="/my-claims" element={<MyClaims />} />
         <Route path="/announcements" element={<Announcement />} />
         <Route path="/announcementDetails/:id" element={<Card />} />
         <Route path="/announcementDetails/:id/claim-reason" element={<ClaimReasonPage />} />
