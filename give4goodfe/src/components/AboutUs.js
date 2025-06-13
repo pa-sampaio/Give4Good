@@ -9,7 +9,7 @@ const AboutUs = () => {
   const ref = useRef(null);
 
   useEffect(() => {
-    const node = ref.current; // Captura a referência atual
+    const node = ref.current; 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

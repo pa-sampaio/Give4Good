@@ -1,25 +1,33 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
+import { useLoading } from "../contexts/LoadingContext";
 
-/**
- * PrivateChat - Chat privado entre o donor e o donee selecionado para um anúncio.
- */
 function PrivateChat({ announcementId: propAnnouncementId, userId: propUserId, recipientId: propRecipientId }) {
   const params = useParams();
   const announcementId = propAnnouncementId || params.id;
   const userId = propUserId || sessionStorage.getItem("userId");
   const userName = sessionStorage.getItem("userName");
+  const recipientId = propRecipientId || params.recipientId; // pode ser undefined
+
   const [donorId, setDonorId] = useState(null);
   const [doneeId, setDoneeId] = useState(null);
-
+  const [chatStartedWith, setChatStartedWith] = useState([]);
   const [accessDenied, setAccessDenied] = useState(false);
 
   const [messages, setMessages] = useState([]);
   const [newMsg, setNewMsg] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoadingState] = useState(true);
+  const { setLoading } = useLoading();
   const messagesEndRef = useRef(null);
+  const isMounted = useRef(true);
+
+  // Helper para delay
+  function sleep(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
 
   useEffect(() => {
+    isMounted.current = true;
     async function fetchAnnouncement() {
       try {
         const res = await fetch(`http://localhost:8080/announcements/${announcementId}`);
@@ -28,40 +36,65 @@ function PrivateChat({ announcementId: propAnnouncementId, userId: propUserId, r
 
         setDonorId(data.userDonorId);
         setDoneeId(data.userDoneeId);
+        setChatStartedWith(Array.isArray(data.chatStartedWith) ? data.chatStartedWith : []);
 
-        if (!(userId && (userId === data.userDonorId || userId === data.userDoneeId) && data.userDoneeId)) {
-          setAccessDenied(true);
-        } else {
+        if (userId === data.userDonorId) {
+          setAccessDenied(!recipientId || recipientId === data.userDonorId);
+        } 
+        else if (userId === data.userDoneeId || (data.chatStartedWith && data.chatStartedWith.includes(userId))) {
           setAccessDenied(false);
+        } 
+        else {
+          setAccessDenied(true);
         }
       } catch {
         setAccessDenied(true);
       }
     }
     fetchAnnouncement();
-  }, [announcementId, userId]);
+    return () => { isMounted.current = false; };
+  }, [announcementId, userId, recipientId]);
 
+  // Loader: desaparece mesmo que venham 0 mensagens
   useEffect(() => {
-    if (accessDenied) return;
-    async function fetchMessages() {
-      setLoading(true);
-      try {
-        const res = await fetch(`http://localhost:8080/announcements/${announcementId}/messages`);
-        if (res.status === 404) {
-          setMessages([]);
-        } else if (res.ok) {
-          const data = await res.json();
-          setMessages(data);
-        } else {
-          throw new Error("Failed to fetch messages");
-        }
-      } catch {
-        setMessages([]);
-      }
+    if (accessDenied) {
       setLoading(false);
+      return;
     }
-    fetchMessages();
-  }, [announcementId, accessDenied]);
+    let cancelled = false;
+    async function fetchMessagesWithLoader() {
+      setLoading(true);
+      setLoadingState(true);
+      while (!cancelled) {
+        try {
+          let chatUrl = `http://localhost:8080/announcements/${announcementId}/messages`;
+          if (recipientId) {
+            chatUrl += `?userA=${donorId}&userB=${recipientId}`;
+          }
+          const res = await fetch(chatUrl);
+          if (res.status === 404) {
+            setMessages([]);
+            setLoading(false);
+            setLoadingState(false);
+            break;
+          } else if (res.ok) {
+            const data = await res.json();
+            setMessages(data);
+            setLoading(false);
+            setLoadingState(false);
+            break;
+          } else {
+            throw new Error("Failed to fetch messages");
+          }
+        } catch {
+          await sleep(2000);
+        }
+      }
+      return () => { cancelled = true; };
+    }
+    fetchMessagesWithLoader();
+    // eslint-disable-next-line
+  }, [announcementId, donorId, recipientId, accessDenied, setLoading]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -70,9 +103,17 @@ function PrivateChat({ announcementId: propAnnouncementId, userId: propUserId, r
   const handleSend = async (e) => {
     e.preventDefault();
     if (!newMsg.trim()) return;
+
+    let receiverId;
+    if (userId === donorId) {
+      receiverId = recipientId;
+    } else {
+      receiverId = donorId;
+    }
+
     const msg = {
       senderId: userId,
-      receiverId: (userId === donorId ? doneeId : donorId),
+      receiverId,
       content: newMsg,
       senderName: userName,
     };
@@ -94,7 +135,7 @@ function PrivateChat({ announcementId: propAnnouncementId, userId: propUserId, r
   if (accessDenied) {
     return (
       <div style={{ color: "#C01722", padding: 20, textAlign: "center", fontWeight: "bold" }}>
-        Private chat is only available for the donor and the selected donee.
+        Private chat is only available for the donor and the selected donee (or candidate, if the donor started the chat).
       </div>
     );
   }
@@ -194,7 +235,6 @@ function PrivateChat({ announcementId: propAnnouncementId, userId: propUserId, r
           aria-label="Send message"
           title="Send"
         >
-          {/* Ícone de enviar (SVG) */}
           <svg xmlns="http://www.w3.org/2000/svg" width="19" height="19" fill="none" viewBox="0 0 24 24">
             <path fill="currentColor" d="M3.4 20.6l17.2-8.6c.7-.4.7-1.6 0-2L3.4 1.4C2.8 1.1 2 1.6 2 2.3v19.4c0 .7.8 1.2 1.4.9zm1.6-2.6V6l12.2 6-12.2 6z"/>
           </svg>

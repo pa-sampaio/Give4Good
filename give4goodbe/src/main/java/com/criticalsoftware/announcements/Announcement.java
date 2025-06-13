@@ -21,8 +21,8 @@ public class Announcement extends PanacheMongoEntity {
     private String userDonorId;
     private String userDoneeId;
     private List<ClaimRequest> claimRequests = new ArrayList<>();
-
     private String status = "available";
+    private List<String> chatStartedWith = new ArrayList<>(); // <-- NOVO
 
     public Announcement(Product product, String userDonorId) {
         this.product = product;
@@ -31,5 +31,6 @@ public class Announcement extends PanacheMongoEntity {
         this.userDoneeId = null;
         this.claimRequests = new ArrayList<>();
         this.status ="available";
+        this.chatStartedWith = new ArrayList<>();
     }
 }

@@ -42,16 +42,10 @@ public class AnnouncementRepository implements PanacheMongoRepository<Announceme
         return list("userDonorId != ?1", donorId);
     }
 
-    /**
-     * Pesquisa por anúncios não reclamados e não criados pelo donorId,
-     * filtrando por nome ou descrição do produto (case-insensitive).
-     * Usa os campos corretos: product.name e product.description
-     */
     public List<Announcement> findUnclaimedNotOwnedByDonorWithSearch(String donorId, String search) {
         if (search == null || search.isBlank()) {
             return findUnclaimedNotOwnedByDonor(donorId);
         }
-        // Regex: encontra o termo em qualquer lugar, case-insensitive
         Pattern regex = Pattern.compile(".*" + Pattern.quote(search.trim()) + ".*", Pattern.CASE_INSENSITIVE);
 
         List<Document> orConditions = new ArrayList<>();
@@ -66,10 +60,6 @@ public class AnnouncementRepository implements PanacheMongoRepository<Announceme
         return list(query);
     }
 
-    /**
-     * Pesquisa por anúncios não reclamados e não criados pelo donorId,
-     * podendo filtrar por search e por categoria.
-     */
     public List<Announcement> findUnclaimedNotOwnedByDonorWithSearchAndCategory(String donorId, String search, String category) {
         List<Document> andConditions = new ArrayList<>();
         andConditions.add(new Document("userDonorId", new Document("$ne", donorId)));
@@ -106,5 +96,14 @@ public class AnnouncementRepository implements PanacheMongoRepository<Announceme
 
         announcement.setUserDoneeId(null);
         return Response.noContent().build();
+    }
+
+    // NOVO: encontrar todos os anúncios onde o donee foi aceite OU tem chat iniciado
+    public List<Announcement> findAnnouncementsWithChatForDonee(String doneeId) {
+        Document query = new Document("$or", List.of(
+                new Document("userDoneeId", doneeId),
+                new Document("chatStartedWith", doneeId)
+        ));
+        return list(query);
     }
 }

@@ -22,12 +22,21 @@ import ClaimReasonPage from "./AnnouncementView/ClaimReasonPage";
 import ClaimRequestsListPage from './AnnouncementView/ClaimRequestListPage.js';
 import PrivateChat from './AnnouncementView/PrivateChat.js';
 import DoneeChatsPage from './AnnouncementView/DoneeChatsPage.js';
+import GlobalLoader from './components/GlobalLoader.js';
+import { LoadingProvider, useLoading } from './contexts/LoadingContext'; // Corrigido aqui!
+
+// Wrapper para mostrar o loader conforme o contexto
+function GlobalLoaderWrapper() {
+  const { loading } = useLoading();
+  return loading ? <GlobalLoader /> : null;
+}
 
 function App() {
   return (
-    <>
+    <LoadingProvider>
       <CssBaseline />
       <Header />
+      <GlobalLoaderWrapper />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/about-us" element={<AboutUs />} />
@@ -45,10 +54,11 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/announcementDetails/:id/claim-requests" element={<ClaimRequestsListPage />} />
+        <Route path="/announcementDetails/:id/private-chat/:recipientId" element={<PrivateChat />} />
         <Route path="/announcementDetails/:id/private-chat" element={<PrivateChat />} />
         <Route path="/private-chat" element={<DoneeChatsPage />} />
       </Routes>
-    </>
+    </LoadingProvider>
   );
 }
 

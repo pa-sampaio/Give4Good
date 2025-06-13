@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Button from "@mui/material/Button";
-import PrivateChat from "./PrivateChat"; // Import the chat component
+import PrivateChat from "./PrivateChat"; 
 
 const styles = `
 .card-container {
@@ -327,7 +327,6 @@ function Card({ onClose }) {
     fetchAnnouncementDetails();
   }, [id]);
 
-  // Fetch comments only when showComments is true and only when it's toggled on
   const fetchComments = async () => {
     setLoadingComments(true);
     try {
@@ -343,7 +342,6 @@ function Card({ onClose }) {
     setLoadingComments(false);
   };
 
-  // Fetch comments when the user clicks "View Comments"
   useEffect(() => {
     if (showComments) fetchComments();
     // eslint-disable-next-line
@@ -368,7 +366,7 @@ function Card({ onClose }) {
         throw new Error("Failed to submit comment");
       }
       setNewComment("");
-      await fetchComments(); // fetch all comments so username and all fields update
+      await fetchComments(); 
     } catch (err) {
       Swal.fire({
         title: "Error!",
@@ -380,7 +378,6 @@ function Card({ onClose }) {
     setSubmittingComment(false);
   };
 
-  // Show private chat only for donor or chosen donee
   const canShowPrivateChat = (userId && (userId === announcementDonorId || userId === announcementDoneeId)) && announcementDoneeId;
 
   return (

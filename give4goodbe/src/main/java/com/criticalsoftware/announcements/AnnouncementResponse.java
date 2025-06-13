@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,12 +19,5 @@ public class AnnouncementResponse {
     private String userDoneeId;
     private LocalDateTime date;
     private String status;
-
-    public AnnouncementResponse(String id, Product product, String userDonorId, LocalDateTime date) {
-        this.id = id;
-        this.product = product;
-        this.userDonorId = userDonorId;
-        this.date = date;
-        this.status = status;
-    }
+    private List<String> chatStartedWith;
 }

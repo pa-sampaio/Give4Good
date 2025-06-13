@@ -1,37 +1,62 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import "./Card.css"; 
+import { useLoading } from "../contexts/LoadingContext";
 
-/**
- * Page for the donor to view all claim requests and choose the winner.
- * (Assumes only the donor sees this screen)
- */
 function ClaimRequestsListPage() {
   const { id } = useParams(); // announcement id
   const [claimRequests, setClaimRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState(false);
   const [doneeId, setDoneeId] = useState(null);
   const navigate = useNavigate();
+  const { setLoading } = useLoading();
+  const isMounted = useRef(true);
 
-  // Fetch the doneeId of the announcement to visually show who was selected
+  // Helper para delay
+  function sleep(ms) {
+    return new Promise((res) => setTimeout(res, ms));
+  }
+
+  // Pega doneeId (não precisa de loader global)
   useEffect(() => {
     fetch(`http://localhost:8080/announcements/${id}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.userDoneeId) setDoneeId(data.userDoneeId);
       });
-  }, [id, selecting]); // Update doneeId after selecting
-
-  useEffect(() => {
-    fetch(`http://localhost:8080/announcements/${id}/claim-requests`)
-      .then((res) => res.json())
-      .then((data) => setClaimRequests(data))
-      .catch(() =>
-        Swal.fire("Error", "Failed to load requests.", "error")
-      )
-      .finally(() => setLoading(false));
   }, [id, selecting]);
+
+  // Loader só desaparece se houver pelo menos 1 claimRequest
+  useEffect(() => {
+    isMounted.current = true;
+    let cancelled = false;
+    async function fetchWithRetry() {
+      setLoading(true);
+      while (!cancelled) {
+        try {
+          const res = await fetch(`http://localhost:8080/announcements/${id}/claim-requests`);
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          if (isMounted.current) {
+            setClaimRequests(data);
+            if (Array.isArray(data) && data.length > 0) {
+              setLoading(false);
+              break;
+            }
+          }
+          await sleep(2000);
+        } catch {
+          await sleep(2000);
+        }
+      }
+    }
+    fetchWithRetry();
+    return () => {
+      cancelled = true;
+      isMounted.current = false;
+    };
+  }, [id, selecting, setLoading]);
 
   const handleSelect = async (userId) => {
     setSelecting(true);
@@ -58,8 +83,7 @@ function ClaimRequestsListPage() {
         "Request successfully selected. You can now chat privately with the donee.",
         "success"
       ).then(() => {
-        // Redireciona diretamente para o chat privado
-        navigate(`/announcementDetails/${id}/private-chat`);
+        navigate(`/announcementDetails/${id}/private-chat/${userId}`);
       });
     } catch (err) {
       Swal.fire(
@@ -72,9 +96,17 @@ function ClaimRequestsListPage() {
     }
   };
 
-  // Botão para ir para o chat, visível só se donee já foi escolhido
+  const handleStartPrivateChat = async (recipientId) => {
+    await fetch(`http://localhost:8080/announcements/${id}/start-chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ doneeId: recipientId }),
+    });
+    navigate(`/announcementDetails/${id}/private-chat/${recipientId}`);
+  };
+
   const handleGoToChat = () => {
-    navigate(`/announcementDetails/${id}/private-chat`);
+    navigate(`/announcementDetails/${id}/private-chat/${doneeId}`);
   };
 
   return (
@@ -88,9 +120,7 @@ function ClaimRequestsListPage() {
       }}
     >
       <h2>Claim Requests</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : claimRequests.length === 0 ? (
+      {claimRequests.length === 0 ? (
         <p>No requests for this announcement yet.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
@@ -120,53 +150,71 @@ function ClaimRequestsListPage() {
               <div>
                 <b>Date:</b> {new Date(req.date).toLocaleString()}
               </div>
-              {doneeId === req.userId || req.selected ? (
-                <div
-                  style={{
-                    color: "#4caf50",
-                    fontWeight: "bold",
-                    marginTop: 8,
-                  }}
-                >
-                  Selected
-                </div>
-              ) : (
+              <div style={{ marginTop: 10, display: "flex", gap: 10 }}>
+                {doneeId === req.userId || req.selected ? (
+                  <div
+                    style={{
+                      color: "#4caf50",
+                      fontWeight: "bold",
+                      marginTop: 8,
+                    }}
+                  >
+                    Selected
+                  </div>
+                ) : (
+                  <button
+                    className="card-comment-submit"
+                    style={{
+                      background: "#C01722",
+                      color: "#fff",
+                      borderRadius: 6,
+                      fontWeight: "bold",
+                      cursor: selecting ? "not-allowed" : "pointer",
+                      padding: "8px 20px",
+                      minWidth: 120,
+                    }}
+                    disabled={selecting}
+                    onClick={() => handleSelect(req.userId)}
+                  >
+                    Select as recipient
+                  </button>
+                )}
                 <button
+                  className="card-comment-submit"
                   style={{
-                    marginTop: 10,
-                    backgroundColor: "#C01722",
+                    background: "#C01722",
                     color: "#fff",
-                    border: "none",
                     borderRadius: 6,
-                    padding: "8px 20px",
                     fontWeight: "bold",
-                    cursor: selecting ? "not-allowed" : "pointer",
+                    cursor: "pointer",
+                    padding: "8px 20px",
+                    minWidth: 120,
                   }}
+                  onClick={() => handleStartPrivateChat(req.userId)}
                   disabled={selecting}
-                  onClick={() => handleSelect(req.userId)}
                 >
-                  Select as recipient
+                  Start Private Chat
                 </button>
-              )}
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      {/* Botão para ir para o chat, visível só se donee já foi escolhido */}
       {doneeId && (
         <div style={{ textAlign: "center", marginTop: 24 }}>
           <button
+            className="card-comment-submit"
             onClick={handleGoToChat}
             style={{
-              backgroundColor: "#C01722",
+              background: "#C01722",
               color: "#fff",
-              border: "none",
-              borderRadius: 6,
-              padding: "12px 32px",
+              borderRadius: 8,
               fontWeight: "bold",
               fontSize: "1.1rem",
               cursor: "pointer",
+              padding: "12px 32px",
+              minWidth: 160,
             }}
           >
             Go to Private Chat
