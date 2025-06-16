@@ -2,6 +2,7 @@ package com.criticalsoftware.announcements;
 
 import com.criticalsoftware.users.User;
 import com.criticalsoftware.users.UserRepository;
+import com.criticalsoftware.users.EmailSender;
 import jakarta.inject.Inject;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
@@ -273,6 +274,30 @@ public class AnnouncementResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("ClaimRequest not found for this user.").build();
         }
         announcementRepository.persistOrUpdate(announcement);
+
+        // ENVIAR EMAIL A TODOS OS CLAIMERS (exceto o escolhido)
+        for (ClaimRequest req : requests) {
+            if (!req.getUserId().equals(dto.userId)) {
+                User user = null;
+                try {
+                    user = userRepository.findById(new ObjectId(req.getUserId()));
+                } catch (Exception ignored) {}
+                if (user != null && user.getContact() != null && user.getContact().getEmail() != null) {
+                    String email = user.getContact().getEmail();
+                    String subject = "Give4Good - Announcement Claimed";
+                    String body = "Hello " + user.getName() + ",\n\n"
+                            + "The announcement \"" + (announcement.getProduct() != null ? announcement.getProduct().getName() : "Give4Good") + "\" has been assigned to another user.\n"
+                            + "Thank you for your participation! Stay tuned for new opportunities on our platform.\n\n"
+                            + "Best regards,\nGive4Good";
+                    try {
+                        EmailSender.sendEmail(email, subject, body);
+                    } catch (Exception e) {
+                        // Log error if needed
+                    }
+                }
+            }
+        }
+
         return Response.ok(announcement).build();
     }
 

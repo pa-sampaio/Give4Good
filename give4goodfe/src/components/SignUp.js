@@ -12,7 +12,7 @@ const SignUp = () => {
     phoneNumber: '',
     email: '',
     password: '',
-    role: '', // <-- ADICIONADO
+    // role removido
   });
 
   const navigate = useNavigate();
@@ -25,13 +25,8 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const { dateOfBirth, phoneNumber, name, address, email, password, role } = formData;
+    const { dateOfBirth, phoneNumber, name, address, email, password } = formData;
     const formattedPhoneNumber = parseInt(phoneNumber, 10);
-
-    if (!role) {
-      toast.error('Please select a role (Donor or Donee)');
-      return;
-    }
 
     if (new Date(dateOfBirth) >= new Date()) {
       toast.error('Date of Birth must be in the past');
@@ -52,12 +47,12 @@ const SignUp = () => {
       name,
       dateBirth: dateOfBirth,
       password,
-      role, // <-- ADICIONADO
       contact: {
         address,
         phoneNumber: formattedPhoneNumber,
         email
       }
+      // role removido do request
     };
 
     try {
@@ -114,21 +109,6 @@ const SignUp = () => {
           <div className="input-group" style={{ gridColumn: '1 / span 2' }}>
             <label className="label" htmlFor="password">Password</label>
             <input className="input" type="password" id="password" name="password" value={formData.password} onChange={handleChange} required />
-          </div>
-          {/* NOVO CAMPO ROLE */}
-          <div className="input-group" style={{ gridColumn: '1 / span 2' }}>
-            <label className="label">Role</label>
-            <select
-              className="input"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Select role...</option>
-              <option value="donor">Donor</option>
-              <option value="donee">Donee</option>
-            </select>
           </div>
           <button className="button" type="submit">Create Account</button>
         </form>
