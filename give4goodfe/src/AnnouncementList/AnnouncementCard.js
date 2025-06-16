@@ -6,6 +6,7 @@ const getStatusColor = (status) => {
   if (status === "available") return "#4caf50";
   if (status === "sent") return "#ffb300";
   if (status === "unavailable") return "#c51d23";
+  if (status === "claimed") return "#8884d8";
   return "#bbb";
 };
 
@@ -53,7 +54,9 @@ function AnnouncementCard({ announcement }) {
 
   const product = announcement.product || {};
   const [imgError, setImgError] = useState(false);
-  const numClaims = announcement.claimRequests ? announcement.claimRequests.length : 0;
+
+  // Sempre mostra o número de claims, mesmo que esteja zero
+  const numClaims = Array.isArray(announcement.claimRequests) ? announcement.claimRequests.length : 0;
 
   return (
     <div className="announcement-card">

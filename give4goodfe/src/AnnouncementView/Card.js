@@ -355,7 +355,7 @@ function Card({ onClose }) {
         throw new Error("Failed to submit comment");
       }
       setNewComment("");
-      await fetchComments(); 
+      await fetchComments();
     } catch (err) {
       Swal.fire({
         title: "Error!",

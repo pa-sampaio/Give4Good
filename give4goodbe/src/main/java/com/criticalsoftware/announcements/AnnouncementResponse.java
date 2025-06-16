@@ -20,4 +20,5 @@ public class AnnouncementResponse {
     private LocalDateTime date;
     private String status;
     private List<String> chatStartedWith;
+    private List<ClaimRequest> claimRequests; // <-- Adicione esta linha
 }
