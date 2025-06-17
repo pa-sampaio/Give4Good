@@ -33,9 +33,6 @@ public class UserRequest {
 
     private String photoUrl;
 
-    @NotBlank(message = "Role is mandatory")
-    private String role; // ADICIONADO
-
     public String getPhotoUrl() {
         return photoUrl;
     }
