@@ -45,22 +45,22 @@ public class AnnouncementService {
         return announcementRepository.findNotOwnedByDonor(donorId).stream().map(this::mapToResponse).toList();
     }
 
-    // NOVO: inclui chats iniciados
+    // Inclui chats iniciados
     public List<AnnouncementResponse> getAnnouncementsWithChatForDonee(String doneeId) {
         return announcementRepository.findAnnouncementsWithChatForDonee(doneeId)
                 .stream().map(this::mapToResponse).toList();
     }
 
     public AnnouncementResponse mapToResponse(Announcement announcement) {
-        // Garante que o campo chatStartedWith é passado para o response!
         return new AnnouncementResponse(
-                announcement.id.toString(),
+                announcement.id != null ? announcement.id.toString() : null,
                 announcement.getProduct(),
                 announcement.getUserDonorId(),
                 announcement.getUserDoneeId(),
                 announcement.getDate(),
                 announcement.getStatus(),
-                announcement.getChatStartedWith()
+                announcement.getChatStartedWith(),
+                announcement.getClaimRequests() // <-- Inclua este campo!
         );
     }
 }

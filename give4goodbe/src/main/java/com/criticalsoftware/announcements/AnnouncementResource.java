@@ -411,20 +411,26 @@ public class AnnouncementResource {
         }
     }
 
+    // GET BY ID
     @GET
     @Path("/{id:" + ID_REGEX + "}")
     public Response getById(@PathParam("id") String id) {
         Announcement announcement = announcementRepository.findAnnouncementById(new ObjectId(id));
         if (announcement == null) return Response.status(Response.Status.NOT_FOUND).entity("Announcement not found.").build();
-
+        // Garante claimRequests nunca nulo
+        announcement.getClaimRequests();
         return Response.ok(announcementService.mapToResponse(announcement)).build();
     }
 
+    // ALL ANNOUNCEMENTS
     @GET
     public Response getAll() {
-        return Response.ok(announcementRepository.listAll().stream()
-                .map(announcementService::mapToResponse)
-                .collect(Collectors.toList())).build();
+        List<Announcement> list = announcementRepository.listAll();
+        // Garante claimRequests nunca nulo
+        for (Announcement a : list) a.getClaimRequests();
+        return Response.ok(
+                list.stream().map(announcementService::mapToResponse).collect(Collectors.toList())
+        ).build();
     }
 
     @GET
@@ -540,10 +546,6 @@ public class AnnouncementResource {
     }
 
     // ==== NOVO: Endpoint para anúncios que o usuário fez claim ====
-    /**
-     * GET /announcements/users/{userId}/claims
-     * Retorna todos os anúncios que o usuário já fez claim (independente de ter sido escolhido).
-     */
     @GET
     @Path("/users/{userId}/claims")
     public Response getAnnouncementsUserClaimed(@PathParam("userId") String userId) {
@@ -555,6 +557,10 @@ public class AnnouncementResource {
                                         .anyMatch(claim -> userId.equals(claim.getUserId()))
                 )
                 .collect(Collectors.toList());
-        return Response.ok(claimedByUser).build();
+        // Garante claimRequests não nulo
+        claimedByUser.forEach(a -> a.getClaimRequests());
+        return Response.ok(
+                claimedByUser.stream().map(announcementService::mapToResponse).collect(Collectors.toList())
+        ).build();
     }
 }

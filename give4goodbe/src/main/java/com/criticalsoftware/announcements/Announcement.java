@@ -22,7 +22,7 @@ public class Announcement extends PanacheMongoEntity {
     private String userDoneeId;
     private List<ClaimRequest> claimRequests = new ArrayList<>();
     private String status = "available";
-    private List<String> chatStartedWith = new ArrayList<>(); // <-- NOVO
+    private List<String> chatStartedWith = new ArrayList<>();
 
     public Announcement(Product product, String userDonorId) {
         this.product = product;
@@ -30,7 +30,13 @@ public class Announcement extends PanacheMongoEntity {
         this.userDonorId = userDonorId;
         this.userDoneeId = null;
         this.claimRequests = new ArrayList<>();
-        this.status ="available";
+        this.status = "available";
         this.chatStartedWith = new ArrayList<>();
+    }
+
+    // Garantir que nunca retorna null
+    public List<ClaimRequest> getClaimRequests() {
+        if (claimRequests == null) claimRequests = new ArrayList<>();
+        return claimRequests;
     }
 }
